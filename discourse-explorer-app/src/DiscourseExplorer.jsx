@@ -1213,6 +1213,10 @@ function DiscourseExplorer() {
                           <div style={{ flex: 1 }}>
                             <EditableText value={p.title} onChange={v => updateProvocation(p.id, "title", v)} style={{ fontSize: "14px", fontWeight: 600, lineHeight: 1.4, fontFamily: "'Poppins'" }} />
                           </div>
+                          <button onClick={() => setAllProvocations(prev => prev.filter(x => x.id !== p.id))}
+                            style={{ background: "none", border: "none", cursor: "pointer", color: DM.grey300, fontSize: "16px", lineHeight: 1, padding: "2px 6px", borderRadius: "3px", flexShrink: 0 }}
+                            onMouseEnter={e => e.target.style.color = "#e53e3e"} onMouseLeave={e => e.target.style.color = DM.grey300}
+                            title="Delete provocation">×</button>
                         </div>
                         <div style={{ paddingLeft: "0" }}>
                           <EditableText value={p.text} onChange={v => updateProvocation(p.id, "text", v)} multiline style={{ fontSize: "12px", fontWeight: 300, color: DM.grey600, lineHeight: 1.65, marginBottom: "8px", fontFamily: "'Poppins'" }} />
