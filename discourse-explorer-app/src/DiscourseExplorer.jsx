@@ -480,13 +480,13 @@ function _zip(files) {
 
 const _E = 914400, _SW = 12192000, _SH = 6858000;
 const _emu = (inches) => Math.round(inches * _E);
-const _hx = (hex) => hex.replace("#","");
+const _hx = (hex) => String(hex||"FFFFFF").replace(/^#/,"").replace(/[^0-9A-Fa-f]/g,"").slice(0,6).padEnd(6,"0");
 let _sid = 100;
 
 function _box(x, y, w, h, fill, bClr = null) {
   const id = _sid++;
   const fXml = fill ? `<a:solidFill><a:srgbClr val="${_hx(fill)}"/></a:solidFill>` : `<a:noFill/>`;
-  const lXml = bClr ? `<a:ln w="25400"><a:solidFill><a:srgbClr val="${_hx(bClr)}"/></a:solidFill></a:ln>` : `<a:ln><a:noFill/></a:ln>`;
+  const lXml = bClr ? `<a:ln w="12700"><a:solidFill><a:srgbClr val="${_hx(bClr)}"/></a:solidFill></a:ln>` : `<a:ln><a:noFill/></a:ln>`;
   return `<p:sp><p:nvSpPr><p:cNvPr id="${id}" name="b${id}"/><p:cNvSpPr><a:spLocks noGrp="1"/></p:cNvSpPr><p:nvPr/></p:nvSpPr><p:spPr><a:xfrm><a:off x="${_emu(x)}" y="${_emu(y)}"/><a:ext cx="${_emu(w)}" cy="${_emu(h)}"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom>${fXml}${lXml}</p:spPr><p:txBody><a:bodyPr/><a:lstStyle/><a:p/></p:txBody></p:sp>`;
 }
 
@@ -494,7 +494,7 @@ function _txt(x, y, w, h, runs, opts = {}) {
   const id = _sid++;
   const { align = "l", valign = "t", bg = null, bClr = null } = opts;
   const fXml = bg ? `<a:solidFill><a:srgbClr val="${_hx(bg)}"/></a:solidFill>` : `<a:noFill/>`;
-  const lXml = bClr ? `<a:ln w="25400"><a:solidFill><a:srgbClr val="${_hx(bClr)}"/></a:solidFill></a:ln>` : `<a:ln><a:noFill/></a:ln>`;
+  const lXml = bClr ? `<a:ln w="12700"><a:solidFill><a:srgbClr val="${_hx(bClr)}"/></a:solidFill></a:ln>` : `<a:ln><a:noFill/></a:ln>`;
   const anch = valign === "c" ? "ctr" : valign === "b" ? "b" : "t";
   const algn = align === "center" ? "ctr" : align === "right" ? "r" : "l";
   const norm = typeof runs === "string" ? [{ t: runs }] : (Array.isArray(runs) ? runs : [{ t: String(runs) }]);
@@ -507,25 +507,26 @@ function _txt(x, y, w, h, runs, opts = {}) {
     }
   }
   if (cur.length) paras.push(cur);
+  if (!paras.length) paras.push([{ t: "" }]);
   const pXml = paras.map(para =>
     `<a:p><a:pPr algn="${algn}"/>${para.map(r => {
-      const { t = "", color = "FFFFFF", bold = false, italic = false, sz = 18, font = "Arial" } = r;
-      return `<a:r><a:rPr lang="en-GB" sz="${Math.round(sz*100)}" b="${bold?1:0}" i="${italic?1:0}" dirty="0"><a:solidFill><a:srgbClr val="${_hx(color)}"/></a:solidFill><a:latin typeface="${font}"/></a:rPr><a:t>${String(t).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")}</a:t></a:r>`;
+      const { t = "", color = "111111", bold = false, italic = false, sz = 18, font = "Arial" } = r;
+      return `<a:r><a:rPr lang="en-GB" sz="${Math.round(sz*100)}" b="${bold?1:0}" i="${italic?1:0}" dirty="0"><a:solidFill><a:srgbClr val="${_hx(color)}"/></a:solidFill><a:latin typeface="${font}"/></a:rPr><a:t>${String(t).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/\r/g,"")}</a:t></a:r>`;
     }).join("")}</a:p>`
   ).join("");
-  return `<p:sp><p:nvSpPr><p:cNvPr id="${id}" name="t${id}"/><p:cNvSpPr txBox="1"><a:spLocks noGrp="1"/></p:cNvSpPr><p:nvPr/></p:nvSpPr><p:spPr><a:xfrm><a:off x="${_emu(x)}" y="${_emu(y)}"/><a:ext cx="${_emu(w)}" cy="${_emu(h)}"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom>${fXml}${lXml}</p:spPr><p:txBody><a:bodyPr anchor="${anch}"><a:normAutofit/></a:bodyPr><a:lstStyle/>${pXml}</p:txBody></p:sp>`;
+  return `<p:sp><p:nvSpPr><p:cNvPr id="${id}" name="t${id}"/><p:cNvSpPr txBox="1"><a:spLocks noGrp="1"/></p:cNvSpPr><p:nvPr/></p:nvSpPr><p:spPr><a:xfrm><a:off x="${_emu(x)}" y="${_emu(y)}"/><a:ext cx="${_emu(w)}" cy="${_emu(h)}"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom>${fXml}${lXml}</p:spPr><p:txBody><a:bodyPr wrap="square" anchor="${anch}"><a:normAutofit/></a:bodyPr><a:lstStyle/>${pXml}</p:txBody></p:sp>`;
 }
 
 function _pic(x, y, w, h, rId) {
   const id = _sid++;
-  return `<p:pic><p:nvPicPr><p:cNvPr id="${id}" name="i${id}"/><p:cNvPicPr><a:picLocks noChangeAspect="1"/></p:cNvPicPr><p:nvPr/></p:nvPicPr><p:blipFill><a:blip r:embed="${rId}"/><a:stretch><a:fillRect/></a:stretch></p:blipFill><p:spPr><a:xfrm><a:off x="${_emu(x)}" y="${_emu(y)}"/><a:ext cx="${_emu(w)}" cy="${_emu(h)}"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom></p:spPr></p:pic>`;
+  return `<p:pic><p:nvPicPr><p:cNvPr id="${id}" name="i${id}"/><p:cNvPicPr><a:picLocks noChangeAspect="1"/></p:cNvPicPr><p:nvPr/></p:nvPicPr><p:blipFill><a:blip r:embed="${rId}"/><a:stretch><a:fillRect/></a:stretch></p:blipFill><p:spPr><a:xfrm><a:off x="${_emu(x)}" y="${_emu(y)}"/><a:ext cx="${_emu(w)}" cy="${_emu(h)}"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom><a:noFill/></p:spPr></p:pic>`;
 }
 
 function _sld(bg, shapes, imgRels = []) {
-  const bgXml = bg ? `<p:bg><p:bgPr><a:solidFill><a:srgbClr val="${_hx(bg)}"/></a:solidFill></p:bgPr></p:bg>` : "";
-  const relEntries = imgRels.map((tgt, i) => `<Relationship Id="rId${i+1}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" Target="${tgt}"/>`).join("\n  ");
+  const bgXml = bg ? `<p:bg><p:bgPr><a:solidFill><a:srgbClr val="${_hx(bg)}"/></a:solidFill><a:effectLst/></p:bgPr></p:bg>` : "";
+  const relEntries = imgRels.map((tgt, i) => `<Relationship Id="rId${i+1}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" Target="${tgt}"/>`).join("");
   return {
-    xml: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><p:sld xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><p:cSld>${bgXml}<p:spTree><p:nvGrpSpPr><p:cNvPr id="1" name=""/><p:cNvGrpSpPr/><p:nvPr/></p:nvGrpSpPr><p:grpSpPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="${_SW}" cy="${_SH}"/><a:chOff x="0" y="0"/><a:chExt cx="${_SW}" cy="${_SH}"/></a:xfrm></p:grpSpPr>${shapes.filter(Boolean).join("")}</p:spTree></p:cSld></p:sld>`,
+    xml: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><p:sld xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:p14="http://schemas.microsoft.com/office/powerpoint/2010/main"><p:cSld>${bgXml}<p:spTree><p:nvGrpSpPr><p:cNvPr id="1" name=""/><p:cNvGrpSpPr/><p:nvPr/></p:nvGrpSpPr><p:grpSpPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="${_SW}" cy="${_SH}"/><a:chOff x="0" y="0"/><a:chExt cx="${_SW}" cy="${_SH}"/></a:xfrm></p:grpSpPr>${shapes.filter(Boolean).join("")}</p:spTree></p:cSld><p:clrMapOvr><a:masterClrMapping/></p:clrMapOvr></p:sld>`,
     rels: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId999" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/slideLayout" Target="../slideLayouts/slideLayout1.xml"/>${relEntries}</Relationships>`
   };
 }
@@ -786,11 +787,12 @@ function DiscourseExplorer() {
         for (let i = 0; i < bin.length; i++) imgData[i] = bin.charCodeAt(i);
         mediaFiles.push(["ppt/media/image1.png", imgData]);
       }
-      const quadHex = { topLeft: "0A3A75", topRight: "2A8C51", bottomLeft: "999999", bottomRight: "EB573F" };
+      const quadHex = { topLeft: "0A3A75", topRight: "2A8C51", bottomLeft: "888888", bottomRight: "EB573F" };
+      const quadLight = { topLeft: "E8EEF7", topRight: "E8F4ED", bottomLeft: "F0F0F0", bottomRight: "FDF0EE" };
       const quadShapes = ["topLeft","topRight","bottomLeft","bottomRight"].flatMap((qk, i) => {
         const qm = qMeta(qk); const bx = 6.9 + (i % 2) * 3.15, by = 0.7 + Math.floor(i/2) * 2.0; const hx = quadHex[qk];
         return [
-          _box(bx, by, 3.05, 1.75, "#" + hx + "20"),
+          _box(bx, by, 3.05, 1.75, "#" + quadLight[qk], "#" + hx),
           _box(bx, by, 0.07, 1.75, "#" + hx),
           _txt(bx+0.15, by+0.12, 2.8, 0.36, [{ t: qm.label||"", color: hx, sz: 10, bold: true, font: "Arial Black" }]),
           _txt(bx+0.15, by+0.5, 2.8, 0.98, [{ t: qm.tagline||"", color: "555555", sz: 9, font: "Arial" }]),
@@ -918,7 +920,116 @@ function DiscourseExplorer() {
     setExporting(false); setShowExport(false);
   }, [exporting, meta, allTensions, allProvocations, exportTensions, exportProvocations, allSources, narratives, currentAxis, qMeta, renderMapToCanvas]);
 
-  // Refine narrative
+  const generateHTML = useCallback(() => {
+    if (!meta) return;
+    const esc = (s) => String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+    const territory = meta.territory || "Discourse Analysis";
+    const selectedTensions = allTensions.filter(t => exportTensions.has(t.id));
+    const selectedProvs = allProvocations.filter(p => exportProvocations.has(p.id));
+    const narr = exportNarrative && currentAxis && currentAxis.narrative ? currentAxis.narrative : null;
+
+    const slide = (bg, content) => `<section style="background:${bg};padding:60px 70px;min-height:540px;display:flex;flex-direction:column;justify-content:center;page-break-after:always;margin-bottom:32px;border-radius:4px;box-shadow:0 2px 12px rgba(0,0,0,0.12);">${content}</section>`;
+    const bar = (content) => `<div style="background:#111;color:#fff;padding:12px 70px;margin:-60px -70px 40px;border-radius:4px 4px 0 0;">${content}</div>`;
+    const label = (t,c="999") => `<p style="font-family:monospace;font-size:11px;color:#${c};letter-spacing:.08em;margin:0 0 6px;">${esc(t)}</p>`;
+    const foot = `<p style="font-family:monospace;font-size:10px;color:#aaa;margin-top:auto;padding-top:24px;">d+m · Cultural Discourse Analysis · Confidential</p>`;
+
+    let html = `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><title>${esc(territory)}</title><style>*{box-sizing:border-box;margin:0;padding:0;}body{font-family:Arial,sans-serif;background:#e8e8e8;padding:32px;}h1,h2,h3{font-family:'Arial Black',Arial,sans-serif;}@media print{body{background:#fff;padding:0;}section{box-shadow:none!important;border-radius:0!important;margin-bottom:0!important;}}</style></head><body>`;
+
+    // Cover
+    html += slide("#111", `
+      <div style="background:#FFD900;height:4px;width:60px;margin-bottom:20px;"></div>
+      ${label("Cultural Discourse Analysis","FFD900")}
+      <h1 style="font-size:48px;color:#fff;line-height:1.1;margin-bottom:24px;">${esc(territory)}</h1>
+      ${meta.client ? `<p style="font-size:18px;color:#999;">${esc(meta.client)}</p>` : ""}
+      ${meta.timeScope ? `<p style="font-family:monospace;font-size:13px;color:#555;margin-top:8px;">${esc(meta.timeScope)}</p>` : ""}
+      ${foot}
+    `);
+
+    // Map — quadrant summary
+    if (currentAxis) {
+      const quads = [["topLeft","#0A3A75"],["topRight","#2A8C51"],["bottomLeft","#999"],["bottomRight","#EB573F"]];
+      const qGrid = quads.map(([k,c]) => {
+        const q = currentAxis.quadrants?.[k]||{}; return `<div style="border-left:4px solid ${c};padding:12px 16px;background:#fafafa;"><p style="font-size:12px;font-weight:700;color:${c};font-family:'Arial Black',Arial;">${esc(q.label||"")}</p><p style="font-size:11px;color:#555;margin-top:4px;">${esc(q.tagline||"")}</p></div>`;
+      }).join("");
+      html += slide("#fff", `
+        ${bar(`<span style="font-size:13px;font-weight:700;">${esc(territory)}</span><span style="float:right;color:#FFD900;font-size:11px;">Discourse Landscape Map</span>`)}
+        <p style="font-size:12px;color:#999;margin-bottom:16px;font-family:monospace;">Lens: ${esc(currentAxis.name||"")}</p>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:24px;">${qGrid}</div>
+        <div style="margin-top:8px;">${narr ? `<p style="font-size:16px;font-family:'Arial Black',Arial;color:#111;margin-bottom:10px;">${esc(narr.headline||"")}</p>` : ""}
+        <p style="font-size:12px;color:#666;font-style:italic;">Open the Discourse Explorer to view the interactive 2×2 map.</p></div>
+        ${foot}
+      `);
+    }
+
+    // Tensions
+    for (const t of selectedTensions) {
+      const ev = t.evidence&&t.evidence[0];
+      html += slide("#fff", `
+        ${bar(`<span style="color:#DB2B39;font-family:monospace;">Tension ${String(t.rank).padStart(2,"0")}</span><span style="float:right;font-size:11px;color:#666;">${esc(territory)}</span>`)}
+        <div style="display:flex;align-items:center;gap:16px;margin-bottom:16px;">
+          <h2 style="font-size:22px;color:#111;flex:1;">${esc(t.forceA||"")}</h2>
+          <span style="font-size:28px;color:#DB2B39;flex-shrink:0;">↔</span>
+          <h2 style="font-size:22px;color:#111;flex:1;">${esc(t.forceB||"")}</h2>
+        </div>
+        <p style="font-size:13px;color:#555;margin-bottom:20px;">${esc(t.summary||"")}</p>
+        ${t.significance ? `<div style="margin-bottom:16px;">${label("SIGNIFICANCE")}<p style="font-size:12px;color:#555;">${esc(t.significance)}</p></div>` : ""}
+        ${t.strategicQuestion ? `<div style="background:#FFF9DB;border-left:3px solid #DB2B39;padding:14px 16px;margin-bottom:16px;">${label("STRATEGIC QUESTION","DB2B39")}<p style="font-size:12px;color:#333;font-style:italic;">${esc(t.strategicQuestion)}</p></div>` : ""}
+        ${ev ? `<div style="background:#f7f7f7;padding:12px 16px;border-left:3px solid #ddd;"><p style="font-size:12px;color:#333;font-style:italic;">"${esc(ev.text||"")}"</p>${ev.source ? `<p style="font-size:10px;color:#999;margin-top:6px;">${esc(ev.source)}</p>` : ""}</div>` : ""}
+        ${foot}
+      `);
+    }
+
+    // Provocations break
+    if (selectedProvs.length > 0) {
+      html += slide("#0A3A75", `
+        <h2 style="font-size:38px;color:#fff;text-align:center;margin-bottom:12px;">Provocations for Fieldwork</h2>
+        <p style="color:#FFD900;text-align:center;font-size:15px;">${selectedProvs.length} selected for primary research</p>
+      `);
+      for (const p of selectedProvs) {
+        const tension = allTensions.find(t => t.id === p.tensionId);
+        html += slide("#fff", `
+          <div style="background:#FFD900;height:4px;margin:-60px -70px 24px;border-radius:4px 4px 0 0;"></div>
+          ${tension ? `<p style="font-family:monospace;font-size:10px;color:#999;margin-bottom:12px;">T${tension.rank} · ${esc(tension.forceA)} ↔ ${esc(tension.forceB)}</p>` : ""}
+          <h2 style="font-size:30px;color:#111;line-height:1.2;margin-bottom:20px;">${esc(p.title||"")}</h2>
+          ${p.text ? `<p style="font-size:13px;color:#555;margin-bottom:16px;">${esc(p.text)}</p>` : ""}
+          ${p.evidence ? `<div style="background:#f7f7f7;padding:12px 16px;border-left:3px solid #ddd;"><p style="font-size:11px;color:#777;font-style:italic;">Evidence: ${esc(p.evidence)}</p></div>` : ""}
+          ${foot}
+        `);
+      }
+    }
+
+    // Narrative
+    if (narr) {
+      const paras = (narr.summary||"").split("\n\n").slice(0,3);
+      html += slide("#fff", `
+        ${bar(`<span style="color:#FFD900;font-weight:700;">Strategic Narrative</span><span style="float:right;font-family:monospace;font-size:10px;color:#666;">Lens: ${esc(currentAxis?.name||"")}</span>`)}
+        <h2 style="font-size:28px;color:#111;margin-bottom:20px;">${esc(narr.headline||"")}</h2>
+        <div style="display:flex;gap:24px;">
+          <div style="flex:2;">${paras.map(p=>`<p style="font-size:12px;color:#444;margin-bottom:12px;">${esc(p)}</p>`).join("")}</div>
+          ${narr.keyTension ? `<div style="flex:1;background:#FFF9DB;border:2px solid #FFD900;padding:16px;">${label("KEY TENSION")}<p style="font-size:12px;color:#333;font-style:italic;">${esc(narr.keyTension)}</p></div>` : ""}
+        </div>
+        ${foot}
+      `);
+    }
+
+    // Sources
+    if (exportSources && allSources && allSources.length > 0) {
+      const typeColors = { News:"#0A3A75",Opinion:"#2A8C51",Academic:"#EB573F",Social:"#DB2B39",Cultural:"#7B4FBF",Category:"#E8830A" };
+      const grouped = {};
+      allSources.forEach(s => { if (!grouped[s.type]) grouped[s.type] = []; grouped[s.type].push(s); });
+      const srcHtml = Object.entries(grouped).map(([type,srcs]) =>
+        `<div style="margin-bottom:20px;"><p style="font-size:11px;font-weight:700;color:${typeColors[type]||"#555"};font-family:monospace;margin-bottom:6px;">${type.toUpperCase()}</p>${srcs.map(s=>`<p style="font-size:11px;color:#444;padding:4px 0;border-bottom:1px solid #f0f0f0;">${esc(s.title||"")}${s.author?` — <em>${esc(s.author)}</em>`:""}</p>`).join("")}</div>`
+      ).join("");
+      html += slide("#fff", `${bar(`<span>Corpus Registry</span><span style="float:right;color:#FFD900;font-family:monospace;font-size:10px;">${allSources.length} sources</span>`)}<div style="columns:2;column-gap:32px;">${srcHtml}</div>${foot}`);
+    }
+
+    html += `</body></html>`;
+    const blob = new Blob([html], { type: "text/html" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = ((meta.client||"discourse").replace(/\s+/g,"_"))+"_landscape_export.html";
+    document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+  }, [meta, allTensions, allProvocations, allSources, exportTensions, exportProvocations, exportNarrative, exportSources, currentAxis]);
   const refineNarrative = useCallback(async () => {
     if (!refinePrompt.trim() || refining || !currentAxis) return;
     setRefining(true); setRefineError("");
@@ -1855,8 +1966,12 @@ function DiscourseExplorer() {
                   {exportSources && " · sources"}
                 </div>
                 <button onClick={generatePPT} disabled={exporting}
-                  style={{ width: "100%", padding: "13px", border: "none", borderRadius: "4px", background: !exporting ? DM.black : DM.grey200, color: !exporting ? DM.white : DM.grey400, fontFamily: "'Anton'", fontSize: "14px", cursor: !exporting ? "pointer" : "default", letterSpacing: "0.06em" }}>
-                  {exporting ? "Generating..." : "Generate PowerPoint \u2192"}
+                  style={{ width: "100%", padding: "13px", border: "none", borderRadius: "4px", background: !exporting ? DM.black : DM.grey200, color: !exporting ? DM.white : DM.grey400, fontFamily: "'Anton'", fontSize: "14px", cursor: !exporting ? "pointer" : "default", letterSpacing: "0.06em", marginBottom: "8px" }}>
+                  {exporting ? "Generating..." : "Export as PowerPoint \u2192"}
+                </button>
+                <button onClick={generateHTML} disabled={exporting}
+                  style={{ width: "100%", padding: "10px", border: `1.5px solid ${DM.grey200}`, borderRadius: "4px", background: DM.white, color: DM.grey400, fontFamily: "'Space Mono'", fontSize: "10px", cursor: "pointer", letterSpacing: "0.04em" }}>
+                  Export as HTML (paste into PPT) {"\u2192"}
                 </button>
               </div>
             </div>
