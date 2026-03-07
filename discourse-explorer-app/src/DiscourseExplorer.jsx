@@ -502,9 +502,9 @@ function DiscourseExplorer() {
   useEffect(() => {
     if (typeof window.pptxgen !== "undefined" || typeof window.PptxGenJS !== "undefined") { setPptxLoaded(true); return; }
     const s = document.createElement("script");
-    s.src = "https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundled.js";
+    s.src = "https://cdnjs.cloudflare.com/ajax/libs/pptxgenjs/3.12.0/pptxgen.bundled.js";
     s.onload = () => setPptxLoaded(true);
-    s.onerror = () => console.warn("PptxGenJS failed to load");
+    s.onerror = () => { console.warn("PptxGenJS failed to load"); setPptxLoaded("error"); };
     document.head.appendChild(s);
   }, []);
 
@@ -1748,10 +1748,11 @@ function DiscourseExplorer() {
                   {exportNarrative && " · narrative"}
                   {exportSources && " · sources"}
                 </div>
+                {pptxLoaded === "error" && <p style={{ fontSize: "10px", color: DM.red, marginBottom: "8px" }}>PowerPoint engine failed to load — check network connection.</p>}
                 {!pptxLoaded && <p style={{ fontSize: "10px", color: DM.grey400, marginBottom: "8px" }}>Loading PowerPoint engine...</p>}
-                <button onClick={generatePPT} disabled={!pptxLoaded || exporting}
-                  style={{ width: "100%", padding: "13px", border: "none", borderRadius: "4px", background: pptxLoaded && !exporting ? DM.black : DM.grey200, color: pptxLoaded && !exporting ? DM.white : DM.grey400, fontFamily: "'Anton'", fontSize: "14px", cursor: pptxLoaded && !exporting ? "pointer" : "default", letterSpacing: "0.06em" }}>
-                  {exporting ? "Generating..." : "Generate PowerPoint →"}
+                <button onClick={generatePPT} disabled={pptxLoaded !== true || exporting}
+                  style={{ width: "100%", padding: "13px", border: "none", borderRadius: "4px", background: pptxLoaded === true && !exporting ? DM.black : DM.grey200, color: pptxLoaded === true && !exporting ? DM.white : DM.grey400, fontFamily: "'Anton'", fontSize: "14px", cursor: pptxLoaded === true && !exporting ? "pointer" : "default", letterSpacing: "0.06em" }}>
+                  {exporting ? "Generating..." : "Generate PowerPoint \u2192"}
                 </button>
               </div>
             </div>
