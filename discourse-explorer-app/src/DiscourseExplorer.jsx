@@ -445,6 +445,101 @@ const PROCESS_STEPS = [
     time: "Ongoing" },
 ];
 
+/* ── Pure-JS PPTX builder (no external deps) ─────────
+   PPTX = ZIP (store mode, no compression) + OOXML XML   */
+
+const _crcT = (() => {
+  const t = new Uint32Array(256);
+  for (let i = 0; i < 256; i++) { let c = i; for (let j = 0; j < 8; j++) c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1); t[i] = c; }
+  return t;
+})();
+function _crc(buf) { let c = 0xFFFFFFFF; for (let i = 0; i < buf.length; i++) c = _crcT[(c ^ buf[i]) & 0xFF] ^ (c >>> 8); return (c ^ 0xFFFFFFFF) >>> 0; }
+function _u32(n) { return [n & 0xFF, (n >> 8) & 0xFF, (n >> 16) & 0xFF, (n >> 24) & 0xFF]; }
+function _u16(n) { return [n & 0xFF, (n >> 8) & 0xFF]; }
+
+function _zip(files) {
+  const enc = new TextEncoder(); const entries = []; let offset = 0; const chunks = [];
+  for (const [name, content] of files) {
+    const nb = enc.encode(name);
+    const data = typeof content === "string" ? enc.encode(content) : content;
+    const crc = _crc(data); const size = data.length;
+    const lfh = new Uint8Array([0x50,0x4B,0x03,0x04,0x14,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,..._u32(crc),..._u32(size),..._u32(size),..._u16(nb.length),0x00,0x00,...nb]);
+    entries.push({ nb, crc, size, offset }); chunks.push(lfh, data); offset += lfh.length + size;
+  }
+  const cdStart = offset;
+  for (let i = 0; i < files.length; i++) {
+    const { nb, crc, size, offset: lo } = entries[i];
+    const cde = new Uint8Array([0x50,0x4B,0x01,0x02,0x14,0x00,0x14,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,..._u32(crc),..._u32(size),..._u32(size),..._u16(nb.length),0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,..._u32(lo),...nb]);
+    chunks.push(cde); offset += cde.length;
+  }
+  const cdSize = offset - cdStart;
+  chunks.push(new Uint8Array([0x50,0x4B,0x05,0x06,0x00,0x00,0x00,0x00,..._u16(files.length),..._u16(files.length),..._u32(cdSize),..._u32(cdStart),0x00,0x00]));
+  const total = chunks.reduce((s,c) => s + c.length, 0); const out = new Uint8Array(total); let pos = 0;
+  for (const c of chunks) { out.set(c, pos); pos += c.length; } return out;
+}
+
+const _E = 914400, _SW = 12192000, _SH = 6858000;
+const _emu = (inches) => Math.round(inches * _E);
+const _hx = (hex) => hex.replace("#","");
+let _sid = 100;
+
+function _box(x, y, w, h, fill, bClr = null) {
+  const id = _sid++;
+  const fXml = fill ? `<a:solidFill><a:srgbClr val="${_hx(fill)}"/></a:solidFill>` : `<a:noFill/>`;
+  const lXml = bClr ? `<a:ln w="25400"><a:solidFill><a:srgbClr val="${_hx(bClr)}"/></a:solidFill></a:ln>` : `<a:ln><a:noFill/></a:ln>`;
+  return `<p:sp><p:nvSpPr><p:cNvPr id="${id}" name="b${id}"/><p:cNvSpPr><a:spLocks noGrp="1"/></p:cNvSpPr><p:nvPr/></p:nvSpPr><p:spPr><a:xfrm><a:off x="${_emu(x)}" y="${_emu(y)}"/><a:ext cx="${_emu(w)}" cy="${_emu(h)}"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom>${fXml}${lXml}</p:spPr><p:txBody><a:bodyPr/><a:lstStyle/><a:p/></p:txBody></p:sp>`;
+}
+
+function _txt(x, y, w, h, runs, opts = {}) {
+  const id = _sid++;
+  const { align = "l", valign = "t", bg = null, bClr = null } = opts;
+  const fXml = bg ? `<a:solidFill><a:srgbClr val="${_hx(bg)}"/></a:solidFill>` : `<a:noFill/>`;
+  const lXml = bClr ? `<a:ln w="25400"><a:solidFill><a:srgbClr val="${_hx(bClr)}"/></a:solidFill></a:ln>` : `<a:ln><a:noFill/></a:ln>`;
+  const anch = valign === "c" ? "ctr" : valign === "b" ? "b" : "t";
+  const algn = align === "center" ? "ctr" : align === "right" ? "r" : "l";
+  const norm = typeof runs === "string" ? [{ t: runs }] : (Array.isArray(runs) ? runs : [{ t: String(runs) }]);
+  const paras = []; let cur = [];
+  for (const run of norm) {
+    const lines = String(run.t || "").split("\n");
+    for (let i = 0; i < lines.length; i++) {
+      cur.push({ ...run, t: lines[i] });
+      if (i < lines.length - 1) { paras.push(cur); cur = []; }
+    }
+  }
+  if (cur.length) paras.push(cur);
+  const pXml = paras.map(para =>
+    `<a:p><a:pPr algn="${algn}"/>${para.map(r => {
+      const { t = "", color = "FFFFFF", bold = false, italic = false, sz = 18, font = "Arial" } = r;
+      return `<a:r><a:rPr lang="en-GB" sz="${Math.round(sz*100)}" b="${bold?1:0}" i="${italic?1:0}" dirty="0"><a:solidFill><a:srgbClr val="${_hx(color)}"/></a:solidFill><a:latin typeface="${font}"/></a:rPr><a:t>${String(t).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")}</a:t></a:r>`;
+    }).join("")}</a:p>`
+  ).join("");
+  return `<p:sp><p:nvSpPr><p:cNvPr id="${id}" name="t${id}"/><p:cNvSpPr txBox="1"><a:spLocks noGrp="1"/></p:cNvSpPr><p:nvPr/></p:nvSpPr><p:spPr><a:xfrm><a:off x="${_emu(x)}" y="${_emu(y)}"/><a:ext cx="${_emu(w)}" cy="${_emu(h)}"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom>${fXml}${lXml}</p:spPr><p:txBody><a:bodyPr anchor="${anch}"><a:normAutofit/></a:bodyPr><a:lstStyle/>${pXml}</p:txBody></p:sp>`;
+}
+
+function _pic(x, y, w, h, rId) {
+  const id = _sid++;
+  return `<p:pic><p:nvPicPr><p:cNvPr id="${id}" name="i${id}"/><p:cNvPicPr><a:picLocks noChangeAspect="1"/></p:cNvPicPr><p:nvPr/></p:nvPicPr><p:blipFill><a:blip r:embed="${rId}"/><a:stretch><a:fillRect/></a:stretch></p:blipFill><p:spPr><a:xfrm><a:off x="${_emu(x)}" y="${_emu(y)}"/><a:ext cx="${_emu(w)}" cy="${_emu(h)}"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom></p:spPr></p:pic>`;
+}
+
+function _sld(bg, shapes, imgRels = []) {
+  const bgXml = bg ? `<p:bg><p:bgPr><a:solidFill><a:srgbClr val="${_hx(bg)}"/></a:solidFill></p:bgPr></p:bg>` : "";
+  const relEntries = imgRels.map((tgt, i) => `<Relationship Id="rId${i+1}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" Target="${tgt}"/>`).join("\n  ");
+  return {
+    xml: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><p:sld xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><p:cSld>${bgXml}<p:spTree><p:nvGrpSpPr><p:cNvPr id="1" name=""/><p:cNvGrpSpPr/><p:nvPr/></p:nvGrpSpPr><p:grpSpPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="${_SW}" cy="${_SH}"/><a:chOff x="0" y="0"/><a:chExt cx="${_SW}" cy="${_SH}"/></a:xfrm></p:grpSpPr>${shapes.filter(Boolean).join("")}</p:spTree></p:cSld></p:sld>`,
+    rels: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId999" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/slideLayout" Target="../slideLayouts/slideLayout1.xml"/>${relEntries}</Relationships>`
+  };
+}
+
+const _CT = (n) => `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Default Extension="png" ContentType="image/png"/><Override PartName="/ppt/presentation.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.presentation.main+xml"/><Override PartName="/ppt/slideMasters/slideMaster1.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.slideMaster+xml"/><Override PartName="/ppt/slideLayouts/slideLayout1.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.slideLayout+xml"/><Override PartName="/ppt/theme/theme1.xml" ContentType="application/vnd.openxmlformats-officedocument.theme+xml"/>${Array.from({length:n},(_,i)=>`<Override PartName="/ppt/slides/slide${i+1}.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.slide+xml"/>`).join("")}</Types>`;
+const _RELS = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="ppt/presentation.xml"/></Relationships>`;
+const _PRES = (n) => `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><p:presentation xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><p:sldMasterIdLst><p:sldMasterId id="2147483648" r:id="rId1"/></p:sldMasterIdLst><p:sldSz cx="12192000" cy="6858000" type="screen16x9"/><p:notesSz cx="6858000" cy="9144000"/><p:sldIdLst>${Array.from({length:n},(_,i)=>`<p:sldId id="${256+i}" r:id="rId${i+2}"/>`).join("")}</p:sldIdLst></p:presentation>`;
+const _PRESRELS = (n) => `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/slideMaster" Target="slideMasters/slideMaster1.xml"/>${Array.from({length:n},(_,i)=>`<Relationship Id="rId${i+2}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/slide" Target="slides/slide${i+1}.xml"/>`).join("")}</Relationships>`;
+const _MASTER = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><p:sldMaster xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><p:cSld><p:spTree><p:nvGrpSpPr><p:cNvPr id="1" name=""/><p:cNvGrpSpPr/><p:nvPr/></p:nvGrpSpPr><p:grpSpPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="12192000" cy="6858000"/><a:chOff x="0" y="0"/><a:chExt cx="12192000" cy="6858000"/></a:xfrm></p:grpSpPr></p:spTree></p:cSld><p:clrMap bg1="lt1" tx1="dk1" bg2="lt2" tx2="dk2" accent1="accent1" accent2="accent2" accent3="accent3" accent4="accent4" accent5="accent5" accent6="accent6" hlink="hlink" folHlink="folHlink"/><p:sldLayoutIdLst><p:sldLayoutId id="2147483649" r:id="rId1"/></p:sldLayoutIdLst><p:txStyles><p:titleStyle><a:lvl1pPr><a:defRPr lang="en-GB"/></a:lvl1pPr></p:titleStyle><p:bodyStyle><a:lvl1pPr><a:defRPr lang="en-GB"/></a:lvl1pPr></p:bodyStyle><p:otherStyle><a:lvl1pPr><a:defRPr lang="en-GB"/></a:lvl1pPr></p:otherStyle></p:txStyles></p:sldMaster>`;
+const _MASTERRELS = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/slideLayout" Target="../slideLayouts/slideLayout1.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/theme" Target="../theme/theme1.xml"/></Relationships>`;
+const _LAYOUT = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><p:sldLayout xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" type="blank" preserve="1"><p:cSld name="Blank"><p:spTree><p:nvGrpSpPr><p:cNvPr id="1" name=""/><p:cNvGrpSpPr/><p:nvPr/></p:nvGrpSpPr><p:grpSpPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="12192000" cy="6858000"/><a:chOff x="0" y="0"/><a:chExt cx="12192000" cy="6858000"/></a:xfrm></p:grpSpPr></p:spTree></p:cSld></p:sldLayout>`;
+const _LAYOUTRELS = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/slideMaster" Target="../slideMasters/slideMaster1.xml"/></Relationships>`;
+const _THEME = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><a:theme xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" name="Office Theme"><a:themeElements><a:clrScheme name="Office"><a:dk1><a:sysClr lastClr="000000" val="windowText"/></a:dk1><a:lt1><a:sysClr lastClr="FFFFFF" val="window"/></a:lt1><a:dk2><a:srgbClr val="44546A"/></a:dk2><a:lt2><a:srgbClr val="E7E6E6"/></a:lt2><a:accent1><a:srgbClr val="4472C4"/></a:accent1><a:accent2><a:srgbClr val="ED7D31"/></a:accent2><a:accent3><a:srgbClr val="A9D18E"/></a:accent3><a:accent4><a:srgbClr val="FFC000"/></a:accent4><a:accent5><a:srgbClr val="5A96CE"/></a:accent5><a:accent6><a:srgbClr val="70AD47"/></a:accent6><a:hlink><a:srgbClr val="0563C1"/></a:hlink><a:folHlink><a:srgbClr val="954F72"/></a:folHlink></a:clrScheme><a:fontScheme name="Office"><a:majorFont><a:latin typeface="Calibri Light"/></a:majorFont><a:minorFont><a:latin typeface="Calibri"/></a:minorFont></a:fontScheme><a:fmtScheme name="Office"><a:fillStyleLst><a:solidFill><a:schemeClr val="phClr"/></a:solidFill><a:solidFill><a:schemeClr val="phClr"/></a:solidFill><a:solidFill><a:schemeClr val="phClr"/></a:solidFill></a:fillStyleLst><a:lnStyleLst><a:ln w="6350"><a:solidFill><a:schemeClr val="phClr"/></a:solidFill></a:ln><a:ln w="12700"><a:solidFill><a:schemeClr val="phClr"/></a:solidFill></a:ln><a:ln w="19050"><a:solidFill><a:schemeClr val="phClr"/></a:solidFill></a:ln></a:lnStyleLst><a:effectStyleLst><a:effectStyle><a:effectLst/></a:effectStyle><a:effectStyle><a:effectLst/></a:effectStyle><a:effectStyle><a:effectLst/></a:effectStyle></a:effectStyleLst><a:bgFillStyleLst><a:solidFill><a:schemeClr val="phClr"/></a:solidFill><a:solidFill><a:schemeClr val="phClr"/></a:solidFill><a:solidFill><a:schemeClr val="phClr"/></a:solidFill></a:bgFillStyleLst></a:fmtScheme></a:themeElements></a:theme>`;
+
 /* ════════════════════════════════════════════════════ */
 function DiscourseExplorer() {
   const [phase, setPhase] = useState("onboarding");
@@ -498,15 +593,8 @@ function DiscourseExplorer() {
   const mapRef = useRef(null);
   const fileRef = useRef(null);
 
-  // Load PptxGenJS from CDN
-  useEffect(() => {
-    if (typeof window.pptxgen !== "undefined" || typeof window.PptxGenJS !== "undefined") { setPptxLoaded(true); return; }
-    const s = document.createElement("script");
-    s.src = "https://cdnjs.cloudflare.com/ajax/libs/pptxgenjs/3.12.0/pptxgen.bundled.js";
-    s.onload = () => setPptxLoaded(true);
-    s.onerror = () => { console.warn("PptxGenJS failed to load"); setPptxLoaded("error"); };
-    document.head.appendChild(s);
-  }, []);
+  // Pure-JS PPTX builder needs no external loading — always ready
+  useEffect(() => { setPptxLoaded(true); }, []);
 
   const currentAxis = useMemo(() => allAxes.find(a => a.id === selectedAxisId) || null, [allAxes, selectedAxisId]);
   const getQ = (x, y) => { if (x < 0.5 && y < 0.5) return "topLeft"; if (x >= 0.5 && y < 0.5) return "topRight"; if (x < 0.5 && y >= 0.5) return "bottomLeft"; return "bottomRight"; };
@@ -670,147 +758,165 @@ function DiscourseExplorer() {
 
   // PPT generation
   const generatePPT = useCallback(async () => {
-    const PptxCtor = window.PptxGenJS || window.pptxgen;
-    if (!PptxCtor || exporting) return;
+    if (exporting) return;
     setExporting(true);
     try {
-      const pptx = new PptxCtor();
-      pptx.layout = "LAYOUT_WIDE";
-      pptx.title = (meta && meta.territory) || "Discourse Analysis";
-      pptx.company = "d+m";
+      _sid = 100;
       const W = 13.33, H = 7.5;
-      const addFooter = (slide) => {
-        slide.addText("d+m \u00B7 Cultural Discourse Analysis \u00B7 Confidential", { x: 0.3, y: H - 0.22, w: W - 0.6, h: 0.18, color: "AAAAAA", fontFace: "Arial", fontSize: 8 });
-      };
-      const cover = pptx.addSlide();
-      cover.background = { color: "111111" };
-      cover.addShape(pptx.ShapeType.rect, { x: 0, y: H - 0.6, w: W, h: 0.6, fill: { color: "FFD900" } });
-      cover.addText("d+m", { x: 0.4, y: H - 0.58, w: 2, h: 0.5, color: "111111", fontFace: "Arial Black", fontSize: 18, bold: true });
-      cover.addText("Cultural Discourse Analysis", { x: 0.4, y: 0.5, w: 10, h: 0.35, color: "FFD900", fontFace: "Arial", fontSize: 11 });
-      cover.addText((meta && meta.territory) || "Discourse Analysis", { x: 0.4, y: 1.0, w: 11, h: 3.2, color: "FFFFFF", fontFace: "Arial Black", fontSize: 40, wrap: true, valign: "top" });
-      if (meta && meta.client) cover.addText(meta.client, { x: 0.4, y: 4.4, w: 7, h: 0.45, color: "999999", fontFace: "Arial", fontSize: 16 });
-      if (meta && meta.timeScope) cover.addText(meta.timeScope, { x: 0.4, y: 4.9, w: 7, h: 0.35, color: "555555", fontFace: "Courier New", fontSize: 12 });
+      const slides = [];
+      const mediaFiles = [];
+      const territory = (meta && meta.territory) || "Discourse Analysis";
+      const ft = () => _txt(0.3, H - 0.22, W - 0.6, 0.18, [{ t: "d+m \u00B7 Cultural Discourse Analysis \u00B7 Confidential", color: "AAAAAA", sz: 8, font: "Arial" }]);
+
+      // ── Cover
+      slides.push(_sld("#111111", [
+        _box(0, H - 0.6, W, 0.6, "#FFD900"),
+        _txt(0.4, H - 0.58, 2, 0.5, [{ t: "d+m", color: "111111", sz: 18, bold: true, font: "Arial Black" }], { valign: "c" }),
+        _txt(0.4, 0.5, 10, 0.35, [{ t: "Cultural Discourse Analysis", color: "FFD900", sz: 11, font: "Arial" }]),
+        _txt(0.4, 1.0, 11, 3.2, [{ t: territory, color: "FFFFFF", sz: 40, bold: true, font: "Arial Black" }]),
+        meta && meta.client ? _txt(0.4, 4.4, 7, 0.45, [{ t: meta.client, color: "999999", sz: 16, font: "Arial" }]) : "",
+        meta && meta.timeScope ? _txt(0.4, 4.9, 7, 0.35, [{ t: meta.timeScope, color: "555555", sz: 12, font: "Courier New" }]) : "",
+      ]));
+
+      // ── Map
       const mapDataUrl = renderMapToCanvas();
-      const mapSlide = pptx.addSlide();
-      mapSlide.background = { color: "FFFFFF" };
-      mapSlide.addShape(pptx.ShapeType.rect, { x: 0, y: 0, w: W, h: 0.5, fill: { color: "111111" } });
-      mapSlide.addText((meta && meta.territory) || "", { x: 0.3, y: 0, w: 8, h: 0.5, color: "FFFFFF", fontFace: "Arial Black", fontSize: 13, valign: "middle" });
-      mapSlide.addText("Discourse Landscape Map", { x: 8, y: 0, w: 5, h: 0.5, color: "FFD900", fontFace: "Arial", fontSize: 10, valign: "middle", align: "right" });
-      mapSlide.addImage({ data: mapDataUrl, x: 0.25, y: 0.6, w: 6.4, h: 6.4 });
+      if (mapDataUrl) {
+        const b64 = mapDataUrl.split(",")[1];
+        const bin = atob(b64); const imgData = new Uint8Array(bin.length);
+        for (let i = 0; i < bin.length; i++) imgData[i] = bin.charCodeAt(i);
+        mediaFiles.push(["ppt/media/image1.png", imgData]);
+      }
       const quadHex = { topLeft: "0A3A75", topRight: "2A8C51", bottomLeft: "999999", bottomRight: "EB573F" };
-      ["topLeft", "topRight", "bottomLeft", "bottomRight"].forEach((qk, i) => {
-        const qm = qMeta(qk);
-        const bx = 6.9 + (i % 2) * 3.15, by = 0.7 + Math.floor(i / 2) * 2.0;
-        mapSlide.addShape(pptx.ShapeType.rect, { x: bx, y: by, w: 3.05, h: 1.75, fill: { color: quadHex[qk] + "12" }, line: { color: quadHex[qk], width: 1 } });
-        mapSlide.addShape(pptx.ShapeType.rect, { x: bx, y: by, w: 0.07, h: 1.75, fill: { color: quadHex[qk] } });
-        mapSlide.addText(qm.label || "", { x: bx + 0.15, y: by + 0.12, w: 2.8, h: 0.36, color: quadHex[qk], fontFace: "Arial Black", fontSize: 10 });
-        mapSlide.addText(qm.tagline || "", { x: bx + 0.15, y: by + 0.5, w: 2.8, h: 0.98, color: "555555", fontFace: "Arial", fontSize: 9, wrap: true });
+      const quadShapes = ["topLeft","topRight","bottomLeft","bottomRight"].flatMap((qk, i) => {
+        const qm = qMeta(qk); const bx = 6.9 + (i % 2) * 3.15, by = 0.7 + Math.floor(i/2) * 2.0; const hx = quadHex[qk];
+        return [
+          _box(bx, by, 3.05, 1.75, "#" + hx + "20"),
+          _box(bx, by, 0.07, 1.75, "#" + hx),
+          _txt(bx+0.15, by+0.12, 2.8, 0.36, [{ t: qm.label||"", color: hx, sz: 10, bold: true, font: "Arial Black" }]),
+          _txt(bx+0.15, by+0.5, 2.8, 0.98, [{ t: qm.tagline||"", color: "555555", sz: 9, font: "Arial" }]),
+        ];
       });
-      addFooter(mapSlide);
+      slides.push(_sld("#FFFFFF", [
+        _box(0, 0, W, 0.5, "#111111"),
+        _txt(0.3, 0, 8, 0.5, [{ t: territory, color: "FFFFFF", sz: 13, bold: true, font: "Arial Black" }], { valign: "c" }),
+        _txt(8, 0, 5, 0.5, [{ t: "Discourse Landscape Map", color: "FFD900", sz: 10, font: "Arial" }], { align: "right", valign: "c" }),
+        mapDataUrl ? _pic(0.25, 0.6, 6.4, 6.4, "rId1") : "",
+        ...quadShapes, ft(),
+      ], mapDataUrl ? ["../media/image1.png"] : []));
+
+      // ── Tension slides
       for (const tid of exportTensions) {
-        const t = allTensions.find(t2 => t2.id === tid);
-        if (!t) continue;
-        const slide = pptx.addSlide();
-        slide.background = { color: "FFFFFF" };
-        slide.addShape(pptx.ShapeType.rect, { x: 0, y: 0, w: W, h: 0.5, fill: { color: "111111" } });
-        slide.addText("Tension " + String(t.rank).padStart(2, "0"), { x: 0.3, y: 0, w: 3, h: 0.5, color: "DB2B39", fontFace: "Courier New", fontSize: 12, valign: "middle" });
-        slide.addText((meta && meta.territory) || "", { x: 3, y: 0, w: 10, h: 0.5, color: "666666", fontFace: "Arial", fontSize: 9, valign: "middle", align: "right" });
-        slide.addText(t.forceA || "", { x: 0.35, y: 0.65, w: 4.8, h: 0.9, color: "111111", fontFace: "Arial Black", fontSize: 21, wrap: true });
-        slide.addText("\u2194", { x: 5.25, y: 0.65, w: 0.85, h: 0.9, color: "DB2B39", fontFace: "Arial Black", fontSize: 32, align: "center", valign: "middle" });
-        slide.addText(t.forceB || "", { x: 6.2, y: 0.65, w: 4.8, h: 0.9, color: "111111", fontFace: "Arial Black", fontSize: 21, wrap: true });
-        slide.addText(t.summary || "", { x: 0.35, y: 1.7, w: 12.6, h: 0.6, color: "555555", fontFace: "Arial", fontSize: 12, wrap: true });
+        const t = allTensions.find(t2 => t2.id === tid); if (!t) continue;
+        const shapes = [
+          _box(0, 0, W, 0.5, "#111111"),
+          _txt(0.3, 0, 3, 0.5, [{ t: "Tension " + String(t.rank).padStart(2,"0"), color: "DB2B39", sz: 12, font: "Courier New" }], { valign: "c" }),
+          _txt(3, 0, 10, 0.5, [{ t: territory, color: "666666", sz: 9, font: "Arial" }], { align: "right", valign: "c" }),
+          _txt(0.35, 0.65, 4.8, 0.9, [{ t: t.forceA||"", color: "111111", sz: 21, bold: true, font: "Arial Black" }]),
+          _txt(5.25, 0.65, 0.85, 0.9, [{ t: "\u2194", color: "DB2B39", sz: 32, bold: true, font: "Arial Black" }], { align: "center", valign: "c" }),
+          _txt(6.2, 0.65, 4.8, 0.9, [{ t: t.forceB||"", color: "111111", sz: 21, bold: true, font: "Arial Black" }]),
+          _txt(0.35, 1.7, 12.6, 0.6, [{ t: t.summary||"", color: "555555", sz: 12, font: "Arial" }]),
+        ];
         if (t.significance) {
-          slide.addText("SIGNIFICANCE", { x: 0.35, y: 2.48, w: 5.8, h: 0.22, color: "999999", fontFace: "Arial", fontSize: 8, bold: true });
-          slide.addText(t.significance, { x: 0.35, y: 2.72, w: 5.8, h: 1.52, color: "555555", fontFace: "Arial", fontSize: 11, wrap: true });
+          shapes.push(_txt(0.35, 2.48, 5.8, 0.22, [{ t: "SIGNIFICANCE", color: "999999", sz: 8, bold: true, font: "Arial" }]));
+          shapes.push(_txt(0.35, 2.72, 5.8, 1.52, [{ t: t.significance, color: "555555", sz: 11, font: "Arial" }]));
         }
         if (t.strategicQuestion) {
-          slide.addShape(pptx.ShapeType.rect, { x: 7.0, y: 2.44, w: 5.95, h: 1.98, fill: { color: "FFF9DB" }, line: { color: "DB2B39", width: 2 } });
-          slide.addText("STRATEGIC QUESTION", { x: 7.2, y: 2.55, w: 5.5, h: 0.26, color: "DB2B39", fontFace: "Arial", fontSize: 9, bold: true });
-          slide.addText(t.strategicQuestion, { x: 7.2, y: 2.84, w: 5.5, h: 1.4, color: "333333", fontFace: "Arial", fontSize: 11, italic: true, wrap: true });
+          shapes.push(_box(7.0, 2.44, 5.95, 1.98, "#FFF9DB", "#DB2B39"));
+          shapes.push(_txt(7.2, 2.55, 5.5, 0.26, [{ t: "STRATEGIC QUESTION", color: "DB2B39", sz: 9, bold: true, font: "Arial" }]));
+          shapes.push(_txt(7.2, 2.84, 5.5, 1.4, [{ t: t.strategicQuestion, color: "333333", sz: 11, italic: true, font: "Arial" }]));
         }
         if (t.evidence && t.evidence.length > 0) {
           const ev = t.evidence[0];
-          slide.addShape(pptx.ShapeType.rect, { x: 0.35, y: 4.6, w: 12.6, h: 0.78, fill: { color: "F7F7F7" }, line: { color: "DDDDDD", width: 1 } });
-          slide.addText("\u201C" + (ev.text || "") + "\u201D", { x: 0.55, y: 4.65, w: 12.1, h: 0.48, color: "333333", fontFace: "Arial", fontSize: 11, italic: true, wrap: true });
-          if (ev.source) slide.addText(ev.source, { x: 0.55, y: 5.2, w: 8, h: 0.18, color: "999999", fontFace: "Arial", fontSize: 9 });
+          shapes.push(_txt(0.35, 4.6, 12.6, 0.78, [{ t: "\u201C"+(ev.text||"")+"\u201D", color: "333333", sz: 11, italic: true, font: "Arial" }], { bg: "#F7F7F7", bClr: "#DDDDDD" }));
+          if (ev.source) shapes.push(_txt(0.55, 5.2, 8, 0.18, [{ t: ev.source, color: "999999", sz: 9, font: "Arial" }]));
         }
-        addFooter(slide);
+        shapes.push(ft()); slides.push(_sld("#FFFFFF", shapes));
       }
+
+      // ── Provocations
       const selectedProvs = allProvocations.filter(p => exportProvocations.has(p.id));
       if (selectedProvs.length > 0) {
-        const secSlide = pptx.addSlide();
-        secSlide.background = { color: "0A3A75" };
-        secSlide.addText("Provocations for Fieldwork", { x: 0.5, y: 2.5, w: W - 1, h: 1.1, color: "FFFFFF", fontFace: "Arial Black", fontSize: 36, align: "center", valign: "middle" });
-        secSlide.addText(selectedProvs.length + " selected for primary research", { x: 0.5, y: 3.7, w: W - 1, h: 0.45, color: "FFD900", fontFace: "Arial", fontSize: 14, align: "center" });
+        slides.push(_sld("#0A3A75", [
+          _txt(0.5, 2.5, W-1, 1.1, [{ t: "Provocations for Fieldwork", color: "FFFFFF", sz: 36, bold: true, font: "Arial Black" }], { align: "center", valign: "c" }),
+          _txt(0.5, 3.7, W-1, 0.45, [{ t: selectedProvs.length + " selected for primary research", color: "FFD900", sz: 14, font: "Arial" }], { align: "center" }),
+        ]));
         for (const p of selectedProvs) {
-          const slide = pptx.addSlide();
-          slide.background = { color: "FFFFFF" };
-          slide.addShape(pptx.ShapeType.rect, { x: 0, y: 0, w: W, h: 0.08, fill: { color: "FFD900" } });
           const tension = allTensions.find(t => t.id === p.tensionId);
-          if (tension) slide.addText("T" + tension.rank + " \u00B7 " + tension.forceA + " \u2194 " + tension.forceB, { x: 0.35, y: 0.18, w: 12.6, h: 0.3, color: "999999", fontFace: "Courier New", fontSize: 9 });
-          slide.addText(p.title || "", { x: 0.35, y: 0.6, w: 12.6, h: 3.2, color: "111111", fontFace: "Arial Black", fontSize: 28, wrap: true, valign: "middle" });
-          if (p.text) slide.addText(p.text, { x: 0.35, y: 3.9, w: 12.6, h: 1.2, color: "555555", fontFace: "Arial", fontSize: 12, wrap: true });
-          if (p.evidence) {
-            slide.addShape(pptx.ShapeType.rect, { x: 0.35, y: 5.2, w: 12.6, h: 0.55, fill: { color: "F7F7F7" }, line: { color: "DDDDDD", width: 1 } });
-            slide.addText("Evidence: " + p.evidence, { x: 0.55, y: 5.25, w: 12.1, h: 0.45, color: "777777", fontFace: "Arial", fontSize: 10, italic: true, wrap: true });
-          }
-          addFooter(slide);
+          slides.push(_sld("#FFFFFF", [
+            _box(0, 0, W, 0.08, "#FFD900"),
+            tension ? _txt(0.35, 0.18, 12.6, 0.3, [{ t: "T"+tension.rank+" \u00B7 "+tension.forceA+" \u2194 "+tension.forceB, color: "999999", sz: 9, font: "Courier New" }]) : "",
+            _txt(0.35, 0.6, 12.6, 3.2, [{ t: p.title||"", color: "111111", sz: 28, bold: true, font: "Arial Black" }], { valign: "c" }),
+            p.text ? _txt(0.35, 3.9, 12.6, 1.2, [{ t: p.text, color: "555555", sz: 12, font: "Arial" }]) : "",
+            p.evidence ? _txt(0.35, 5.2, 12.6, 0.55, [{ t: "Evidence: "+p.evidence, color: "777777", sz: 10, italic: true, font: "Arial" }], { bg: "#F7F7F7", bClr: "#DDDDDD" }) : "",
+            ft(),
+          ]));
         }
       }
-      // Strategic Narrative slide
+
+      // ── Strategic Narrative
       if (exportNarrative && currentAxis && currentAxis.narrative) {
         const narr = currentAxis.narrative;
-        const nSlide = pptx.addSlide();
-        nSlide.background = { color: "FFFFFF" };
-        nSlide.addShape(pptx.ShapeType.rect, { x: 0, y: 0, w: W, h: 0.5, fill: { color: "111111" } });
-        nSlide.addText("Strategic Narrative", { x: 0.3, y: 0, w: 6, h: 0.5, color: "FFD900", fontFace: "Arial Black", fontSize: 13, valign: "middle" });
-        nSlide.addText("Lens: " + (currentAxis.name || ""), { x: 6.5, y: 0, w: 6.5, h: 0.5, color: "666666", fontFace: "Courier New", fontSize: 9, valign: "middle", align: "right" });
-        nSlide.addText(narr.headline || "", { x: 0.35, y: 0.65, w: 12.6, h: 1.6, color: "111111", fontFace: "Arial Black", fontSize: 26, wrap: true, valign: "top" });
-        const summaryParas = (narr.summary || "").split("\n\n").slice(0, 3);
-        summaryParas.forEach((para, i) => {
-          nSlide.addText(para, { x: 0.35, y: 2.45 + i * 1.2, w: 8.2, h: 1.1, color: "444444", fontFace: "Arial", fontSize: 11, wrap: true });
-        });
+        const paras = (narr.summary||"").split("\n\n").slice(0,3);
+        const shapes = [
+          _box(0, 0, W, 0.5, "#111111"),
+          _txt(0.3, 0, 6, 0.5, [{ t: "Strategic Narrative", color: "FFD900", sz: 13, bold: true, font: "Arial Black" }], { valign: "c" }),
+          _txt(6.5, 0, 6.5, 0.5, [{ t: "Lens: "+(currentAxis.name||""), color: "666666", sz: 9, font: "Courier New" }], { align: "right", valign: "c" }),
+          _txt(0.35, 0.65, 12.6, 1.6, [{ t: narr.headline||"", color: "111111", sz: 26, bold: true, font: "Arial Black" }]),
+          ...paras.map((para, i) => _txt(0.35, 2.45+i*1.2, 8.2, 1.1, [{ t: para, color: "444444", sz: 11, font: "Arial" }])),
+        ];
         if (narr.keyTension) {
-          nSlide.addShape(pptx.ShapeType.rect, { x: 8.75, y: 0.65, w: 4.25, h: 3.9, fill: { color: "FFF9DB" }, line: { color: "FFD900", width: 2 } });
-          nSlide.addText("KEY TENSION", { x: 8.95, y: 0.78, w: 3.85, h: 0.26, color: "999999", fontFace: "Arial", fontSize: 8, bold: true });
-          nSlide.addText(narr.keyTension, { x: 8.95, y: 1.1, w: 3.85, h: 3.3, color: "333333", fontFace: "Arial", fontSize: 11, italic: true, wrap: true });
+          shapes.push(_box(8.75, 0.65, 4.25, 3.9, "#FFF9DB", "#FFD900"));
+          shapes.push(_txt(8.95, 0.78, 3.85, 0.26, [{ t: "KEY TENSION", color: "999999", sz: 8, bold: true, font: "Arial" }]));
+          shapes.push(_txt(8.95, 1.1, 3.85, 3.3, [{ t: narr.keyTension, color: "333333", sz: 11, italic: true, font: "Arial" }]));
         }
-        addFooter(nSlide);
+        shapes.push(ft()); slides.push(_sld("#FFFFFF", shapes));
       }
-      // Sources slide
+
+      // ── Sources
       if (exportSources && allSources && allSources.length > 0) {
-        const srcSlide = pptx.addSlide();
-        srcSlide.background = { color: "FFFFFF" };
-        srcSlide.addShape(pptx.ShapeType.rect, { x: 0, y: 0, w: W, h: 0.5, fill: { color: "111111" } });
-        srcSlide.addText("Corpus Registry", { x: 0.3, y: 0, w: 6, h: 0.5, color: "FFFFFF", fontFace: "Arial Black", fontSize: 13, valign: "middle" });
-        srcSlide.addText(allSources.length + " sources", { x: 6.5, y: 0, w: 6.5, h: 0.5, color: "FFD900", fontFace: "Courier New", fontSize: 10, valign: "middle", align: "right" });
-        const typeColors = { News: "0A3A75", Opinion: "2A8C51", Academic: "EB573F", Social: "DB2B39", Cultural: "7B4FBF", Category: "E8830A" };
+        const typeColors = { News:"0A3A75", Opinion:"2A8C51", Academic:"EB573F", Social:"DB2B39", Cultural:"7B4FBF", Category:"E8830A" };
         const grouped = {};
         allSources.forEach(s => { if (!grouped[s.type]) grouped[s.type] = []; grouped[s.type].push(s); });
-        let col = 0, row = 0;
-        const colW = 6.0, startY = 0.65, rowH = 0.27;
-        Object.entries(grouped).forEach(([type, srcs]) => {
-          const x = 0.35 + col * (colW + 0.7), y = startY + row * rowH;
-          if (y > 6.8) return;
-          const hex = typeColors[type] || "555555";
-          srcSlide.addText(type.toUpperCase(), { x, y, w: 1.1, h: 0.24, color: hex, fontFace: "Arial", fontSize: 8, bold: true });
+        const shapes = [
+          _box(0, 0, W, 0.5, "#111111"),
+          _txt(0.3, 0, 6, 0.5, [{ t: "Corpus Registry", color: "FFFFFF", sz: 13, bold: true, font: "Arial Black" }], { valign: "c" }),
+          _txt(6.5, 0, 6.5, 0.5, [{ t: allSources.length+" sources", color: "FFD900", sz: 10, font: "Courier New" }], { align: "right", valign: "c" }),
+        ];
+        let col = 0, row = 0; const colW = 6.0, startY = 0.65, rowH = 0.27;
+        for (const [type, srcs] of Object.entries(grouped)) {
+          const x = 0.35 + col*(colW+0.7), y = startY + row*rowH;
+          if (y > 6.8) break;
+          const hx = typeColors[type]||"555555";
+          shapes.push(_txt(x, y, 1.1, 0.24, [{ t: type.toUpperCase(), color: hx, sz: 8, bold: true, font: "Arial" }]));
           srcs.forEach((s, si) => {
-            const sy = y + (si + 0.8) * rowH;
-            if (sy > 6.8) return;
-            const label = ((s.title || "").slice(0, 52) + (s.title && s.title.length > 52 ? "\u2026" : "")) + (s.author ? "  \u2014  " + s.author : "");
-            srcSlide.addText(label, { x: x + 0.05, y: sy, w: colW - 0.1, h: rowH - 0.02, color: "444444", fontFace: "Arial", fontSize: 8 });
+            const sy = y + (si+0.8)*rowH; if (sy > 6.8) return;
+            const label = (s.title||"").slice(0,52)+((s.title||"").length>52?"\u2026":"")+(s.author?" \u2014 "+s.author:"");
+            shapes.push(_txt(x+0.05, sy, colW-0.1, rowH-0.02, [{ t: label, color: "444444", sz: 8, font: "Arial" }]));
           });
-          row += srcs.length + 1.2;
-          if (startY + row * rowH > 6.3) { row = 0; col++; }
-        });
-        addFooter(srcSlide);
+          row += srcs.length+1.2; if (startY+row*rowH > 6.3) { row = 0; col++; }
+        }
+        shapes.push(ft()); slides.push(_sld("#FFFFFF", shapes));
       }
-      const fname = ((meta && meta.client) || "discourse").replace(/\s+/g, "_") + "_landscape_export.pptx";
-      await pptx.writeFile({ fileName: fname });
-    } catch (err) { console.error("PPT export error:", err); }
-    setExporting(false);
-    setShowExport(false);
-  }, [exporting, meta, allTensions, allProvocations, exportTensions, exportProvocations, narratives, currentAxis, qMeta, renderMapToCanvas, getQ]);
+
+      // ── Assemble ZIP
+      const n = slides.length;
+      const files = [
+        ["[Content_Types].xml", _CT(n)], ["_rels/.rels", _RELS],
+        ["ppt/presentation.xml", _PRES(n)], ["ppt/_rels/presentation.xml.rels", _PRESRELS(n)],
+        ["ppt/theme/theme1.xml", _THEME],
+        ["ppt/slideMasters/slideMaster1.xml", _MASTER], ["ppt/slideMasters/_rels/slideMaster1.xml.rels", _MASTERRELS],
+        ["ppt/slideLayouts/slideLayout1.xml", _LAYOUT], ["ppt/slideLayouts/_rels/slideLayout1.xml.rels", _LAYOUTRELS],
+        ...slides.flatMap((s, i) => [[`ppt/slides/slide${i+1}.xml`, s.xml],[`ppt/slides/_rels/slide${i+1}.xml.rels`, s.rels]]),
+        ...mediaFiles,
+      ];
+      const blob = new Blob([_zip(files)], { type: "application/vnd.openxmlformats-officedocument.presentationml.presentation" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url; a.download = ((meta && meta.client)||"discourse").replace(/\s+/g,"_")+"_landscape_export.pptx";
+      document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+    } catch (err) { console.error("PPT export error:", err); alert("Export failed: " + err.message); }
+    setExporting(false); setShowExport(false);
+  }, [exporting, meta, allTensions, allProvocations, exportTensions, exportProvocations, allSources, narratives, currentAxis, qMeta, renderMapToCanvas]);
 
   // Refine narrative
   const refineNarrative = useCallback(async () => {
@@ -1748,10 +1854,8 @@ function DiscourseExplorer() {
                   {exportNarrative && " · narrative"}
                   {exportSources && " · sources"}
                 </div>
-                {pptxLoaded === "error" && <p style={{ fontSize: "10px", color: DM.red, marginBottom: "8px" }}>PowerPoint engine failed to load — check network connection.</p>}
-                {!pptxLoaded && <p style={{ fontSize: "10px", color: DM.grey400, marginBottom: "8px" }}>Loading PowerPoint engine...</p>}
-                <button onClick={generatePPT} disabled={pptxLoaded !== true || exporting}
-                  style={{ width: "100%", padding: "13px", border: "none", borderRadius: "4px", background: pptxLoaded === true && !exporting ? DM.black : DM.grey200, color: pptxLoaded === true && !exporting ? DM.white : DM.grey400, fontFamily: "'Anton'", fontSize: "14px", cursor: pptxLoaded === true && !exporting ? "pointer" : "default", letterSpacing: "0.06em" }}>
+                <button onClick={generatePPT} disabled={exporting}
+                  style={{ width: "100%", padding: "13px", border: "none", borderRadius: "4px", background: !exporting ? DM.black : DM.grey200, color: !exporting ? DM.white : DM.grey400, fontFamily: "'Anton'", fontSize: "14px", cursor: !exporting ? "pointer" : "default", letterSpacing: "0.06em" }}>
                   {exporting ? "Generating..." : "Generate PowerPoint \u2192"}
                 </button>
               </div>
