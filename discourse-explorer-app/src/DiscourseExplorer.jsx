@@ -694,7 +694,7 @@ function DiscourseExplorer() {
     setGenerating(true); setGenError("");
     try {
       const prompt = buildAxisPrompt(allNarratives, meta, newAngle.trim());
-      const res = await fetch("https://api.anthropic.com/v1/messages", {
+      const res = await fetch("/.netlify/functions/claude", {
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ model: "claude-sonnet-4-20250514", max_tokens: 2000, messages: [{ role: "user", content: prompt }] }),
       });
@@ -715,7 +715,7 @@ function DiscourseExplorer() {
     setProvGenerating(true); setProvError("");
     try {
       const prompt = buildProvocationPrompt(allTensions, allNarratives, meta, provPrompt.trim(), selectedProvType);
-      const res = await fetch("https://api.anthropic.com/v1/messages", {
+      const res = await fetch("/.netlify/functions/claude", {
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ model: "claude-sonnet-4-20250514", max_tokens: 1000, messages: [{ role: "user", content: prompt }] }),
       });
@@ -1082,7 +1082,7 @@ function DiscourseExplorer() {
     setRefining(true); setRefineError("");
     try {
       const prompt = buildRefinePrompt(currentAxis, allNarratives, meta, refinePrompt.trim());
-      const res = await fetch("https://api.anthropic.com/v1/messages", {
+      const res = await fetch("/.netlify/functions/claude", {
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ model: "claude-sonnet-4-20250514", max_tokens: 2000, messages: [{ role: "user", content: prompt }] }),
       });
