@@ -403,6 +403,61 @@ Return ONLY a JSON object (no markdown, no fences):
 The title MUST be a single-sentence question. Start from corpus language — use actual words and framings from the analysis, not abstracted labels.`;
 }
 
+function buildNarrativeDeepDivePrompt(narrative, allNarratives, tensions, meta) {
+  const relatedNames = (narrative.relatedNarratives || [])
+    .map(id => allNarratives.find(n => n.id === id)?.name).filter(Boolean).join(", ");
+  const tensionsInvolved = tensions
+    .filter(t => t.evidence?.some(ev => ev.narrativeId === narrative.id))
+    .map(t => `${t.forceA} ↔ ${t.forceB}`).join("; ");
+  const quotes = (narrative.quotes || []).slice(0, 2)
+    .map(q => `"${String(q.text).slice(0, 120)}" [${q.market}]`).join("\n");
+  const trunc = (s, n = 150) => String(s || "").slice(0, n);
+
+  return `You are a senior cultural analyst at d+m. Write a 4-paragraph analytical deep-dive on the narrative "${narrative.name}" from "${trunc(meta.territory)}" for ${trunc(meta.client, 50)}.
+
+Salience: ${narrative.salience}% | Markets: ${(narrative.markets || []).join(", ")}
+Description: ${trunc(narrative.description, 200)}
+Emotional register: ${narrative.emotionalRegister?.primary} + ${narrative.emotionalRegister?.secondary}
+Metaphor: ${narrative.metaphorFamily?.primary} — ${(narrative.metaphorFamily?.examples || []).slice(0, 4).join(", ")}
+Orthodoxy: ${trunc(narrative.culturalStrategy?.orthodoxy)}
+Contradiction: ${trunc(narrative.culturalStrategy?.contradiction)}
+Opportunity: ${trunc(narrative.culturalStrategy?.opportunity)}
+Linguistic patterns: ${(narrative.linguisticPatterns || []).join("; ")}
+Related: ${relatedNames || "none"} | In tensions: ${tensionsInvolved || "none"}
+Key quotes:
+${quotes}
+
+Write 4 paragraphs of genuine analytical interpretation — not a summary of the data above. Cover: what this narrative reveals about how people construct meaning; what the metaphor and emotional register tell us about the psychological work being done; where this narrative is heading; and the specific strategic implication for the client. British English. Flowing prose, no headers or bullets.`;
+}
+
+function buildQuadrantSynthesisPrompt(quadrantKey, quadrantNarratives, currentAxis, meta, tensions) {
+  const qMeta = currentAxis?.quadrants?.[quadrantKey];
+  const isDominant = quadrantKey === "topLeft" || quadrantKey === "bottomLeft";
+  const isTop = quadrantKey === "topLeft" || quadrantKey === "topRight";
+  const yPole = isTop ? currentAxis?.topLabel : currentAxis?.bottomLabel;
+  const trunc = (s, n = 120) => String(s || "").slice(0, n);
+
+  const narrativeSummaries = quadrantNarratives.map(n =>
+    `- ${n.name} (${n.salience}%): ${trunc(n.description, 100)} | ${n.emotionalRegister?.primary} | ${n.metaphorFamily?.primary}`
+  ).join("\n");
+
+  const relevantTensions = tensions
+    .filter(t => t.evidence?.some(ev => quadrantNarratives.find(n => n.id === ev.narrativeId)))
+    .map(t => `${t.forceA} ↔ ${t.forceB}`).join("; ");
+
+  return `You are a senior cultural analyst at d+m. Write a 3-4 paragraph strategic synthesis of the "${qMeta?.label || quadrantKey}" quadrant for ${trunc(meta.client, 50)}, territory "${trunc(meta.territory)}".
+
+Position: ${isDominant ? "Dominant" : "Emergent"} × ${yPole} | Lens: ${currentAxis?.name || ""}
+Strategic position: ${isDominant && isTop ? "cultural common sense, table stakes" : isDominant ? "established consensus, may be calcifying" : isTop ? "rising territory, first-mover advantage" : "frontier, highest potential, no settled view"}
+
+Narratives (${quadrantNarratives.length}):
+${narrativeSummaries}
+
+Tensions through this quadrant: ${relevantTensions || "none"}
+
+Write 3-4 paragraphs: what shared cultural logic holds these narratives together; what the cluster reveals that no single narrative does; what the "${currentAxis?.name || "lens"}" illuminates about them as a group; and the specific strategic implication. British English. Flowing prose, no headers or bullets.`;
+}
+
 function buildRefinePrompt(currentAxis, narratives, meta, userPrompt) {
   const ns = narratives.map(n => `- ${n.name} (salience:${n.salience}%): ${n.description}`).join("\n");
   return `You are a discourse strategist for d+m. Rewrite the strategic narrative for ${meta.client}'s "${meta.territory}" territory through the lens "${currentAxis.name}".
@@ -627,6 +682,12 @@ function DiscourseExplorer() {
   const [showGaps, setShowGaps] = useState(false);
   const [expandedTension, setExpandedTension] = useState(null);
 
+  // Deep-dive: cache by narrative id, quadrant synthesis: cache by quadrantKey+axisId
+  const [deepDiveCache, setDeepDiveCache] = useState({});
+  const [deepDiveLoading, setDeepDiveLoading] = useState(null); // narrative id being generated
+  const [quadrantSynthCache, setQuadrantSynthCache] = useState({});
+  const [quadrantSynthLoading, setQuadrantSynthLoading] = useState(null); // quadrantKey being generated
+
   const [showExport, setShowExport] = useState(false);
   const [exportTensions, setExportTensions] = useState(new Set());
   const [exportProvocations, setExportProvocations] = useState(new Set());
@@ -731,6 +792,60 @@ function DiscourseExplorer() {
     } catch (err) { setProvError("Failed: " + err.message); }
     setProvGenerating(false);
   }, [provPrompt, provGenerating, selectedProvType, allTensions, allNarratives, meta, allProvocations]);
+
+  // Generate narrative deep-dive
+  const generateNarrativeDeepDive = useCallback(async (narrative) => {
+    const cacheKey = narrative.id;
+    if (deepDiveCache[cacheKey] || deepDiveLoading) return;
+    setDeepDiveLoading(cacheKey);
+    try {
+      const prompt = buildNarrativeDeepDivePrompt(narrative, allNarratives, allTensions, meta);
+      const body = JSON.stringify({ model: "claude-sonnet-4-20250514", max_tokens: 1000, messages: [{ role: "user", content: prompt }] });
+      console.log("[DeepDive] prompt length:", prompt.length, "body length:", body.length);
+      const res = await fetch("/api/claude", {
+        method: "POST", headers: { "Content-Type": "application/json" }, body,
+      });
+      console.log("[DeepDive] response status:", res.status);
+      const raw = await res.text();
+      console.log("[DeepDive] raw response (first 200):", raw.slice(0, 200));
+      if (!res.ok) throw new Error(`API error ${res.status}`);
+      const result = JSON.parse(raw);
+      const text = result.content?.map(b => b.text || "").join("") || "";
+      if (!text) throw new Error("Empty response");
+      setDeepDiveCache(prev => ({ ...prev, [cacheKey]: text }));
+    } catch (err) {
+      console.error("[DeepDive] error:", err);
+      setDeepDiveCache(prev => ({ ...prev, [cacheKey]: `Error: ${err.message}` }));
+    }
+    setDeepDiveLoading(null);
+  }, [deepDiveCache, deepDiveLoading, allNarratives, allTensions, meta]);
+
+  // Generate quadrant synthesis
+  const generateQuadrantSynthesis = useCallback(async (quadrantKey, quadrantNarratives) => {
+    const cacheKey = `${quadrantKey}__${selectedAxisId}`;
+    if (quadrantSynthCache[cacheKey] || quadrantSynthLoading) return;
+    setQuadrantSynthLoading(quadrantKey);
+    try {
+      const prompt = buildQuadrantSynthesisPrompt(quadrantKey, quadrantNarratives, currentAxis, meta, allTensions);
+      const body = JSON.stringify({ model: "claude-sonnet-4-20250514", max_tokens: 1000, messages: [{ role: "user", content: prompt }] });
+      console.log("[QuadSynth] prompt length:", prompt.length, "body length:", body.length);
+      const res = await fetch("/api/claude", {
+        method: "POST", headers: { "Content-Type": "application/json" }, body,
+      });
+      console.log("[QuadSynth] response status:", res.status);
+      const raw = await res.text();
+      console.log("[QuadSynth] raw response (first 200):", raw.slice(0, 200));
+      if (!res.ok) throw new Error(`API error ${res.status}`);
+      const result = JSON.parse(raw);
+      const text = result.content?.map(b => b.text || "").join("") || "";
+      if (!text) throw new Error("Empty response");
+      setQuadrantSynthCache(prev => ({ ...prev, [cacheKey]: text }));
+    } catch (err) {
+      console.error("[QuadSynth] error:", err);
+      setQuadrantSynthCache(prev => ({ ...prev, [cacheKey]: `Error: ${err.message}` }));
+    }
+    setQuadrantSynthLoading(null);
+  }, [quadrantSynthCache, quadrantSynthLoading, currentAxis, selectedAxisId, meta, allTensions]);
 
   // Canvas map renderer for PPT export
   const renderMapToCanvas = useCallback(() => {
@@ -1516,6 +1631,51 @@ function DiscourseExplorer() {
                         </div>
                       </div>
                     )}
+                    {/* ── AI Deep-dive ── */}
+                    {(() => {
+                      const cacheKey = n.id;
+                      const content = deepDiveCache[cacheKey];
+                      const isLoading = deepDiveLoading === cacheKey;
+                      return (
+                        <div style={{ marginTop: "24px", borderTop: `1px solid ${DM.grey100}`, paddingTop: "20px" }}>
+                          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: content ? "14px" : "0" }}>
+                            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                              <div style={{ width: "6px", height: "6px", borderRadius: "50%", background: DM.yellow }} />
+                              <span style={{ fontFamily: "'Space Mono'", fontSize: "9px", color: DM.nearBlack, letterSpacing: "0.04em" }}>Analyst Deep-dive</span>
+                            </div>
+                            {!content && !isLoading && (
+                              <button
+                                onClick={() => generateNarrativeDeepDive(n)}
+                                style={{ fontSize: "11px", fontWeight: 600, color: DM.nearBlack, background: DM.yellow, border: "none", borderRadius: "3px", padding: "5px 12px", cursor: "pointer" }}
+                              >
+                                Generate →
+                              </button>
+                            )}
+                          </div>
+                          {isLoading && (
+                            <div style={{ padding: "20px 0", display: "flex", alignItems: "center", gap: "10px" }}>
+                              <div style={{ width: "14px", height: "14px", border: `2px solid ${DM.grey200}`, borderTopColor: DM.yellow, borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
+                              <span style={{ fontSize: "11px", fontWeight: 300, color: DM.grey400 }}>Generating analytical deep-dive…</span>
+                            </div>
+                          )}
+                          {content && !isLoading && (
+                            <div>
+                              <div style={{ background: "#FFFDF0", border: `1px solid ${DM.yellow}40`, borderLeft: `3px solid ${DM.yellow}`, borderRadius: "4px", padding: "16px 18px" }}>
+                                {content.split("\n\n").filter(Boolean).map((para, i) => (
+                                  <p key={i} style={{ fontSize: "12px", fontWeight: 300, color: DM.nearBlack, lineHeight: 1.75, margin: i < content.split("\n\n").filter(Boolean).length - 1 ? "0 0 14px" : "0" }}>{para}</p>
+                                ))}
+                              </div>
+                              <button
+                                onClick={() => setDeepDiveCache(prev => { const next = {...prev}; delete next[cacheKey]; return next; })}
+                                style={{ marginTop: "8px", fontSize: "10px", color: DM.grey400, background: "none", border: "none", cursor: "pointer", padding: "0" }}
+                              >
+                                ↺ Regenerate
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })()}
                   </div>
                 );
               })() : selectedQuadrant ? (() => {
@@ -1597,6 +1757,51 @@ function DiscourseExplorer() {
                               </div>
                             ))}
                           </div>
+                        </div>
+                      );
+                    })()}
+                    {/* ── AI Quadrant Synthesis ── */}
+                    {qNarratives.length > 0 && (() => {
+                      const cacheKey = `${qk}__${selectedAxisId}`;
+                      const content = quadrantSynthCache[cacheKey];
+                      const isLoading = quadrantSynthLoading === qk;
+                      return (
+                        <div style={{ marginTop: "24px", borderTop: `1px solid ${DM.grey100}`, paddingTop: "20px" }}>
+                          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: content ? "14px" : "0" }}>
+                            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                              <div style={{ width: "6px", height: "6px", borderRadius: "50%", background: col }} />
+                              <span style={{ fontFamily: "'Space Mono'", fontSize: "9px", color: DM.nearBlack, letterSpacing: "0.04em" }}>Strategic Synthesis</span>
+                            </div>
+                            {!content && !isLoading && (
+                              <button
+                                onClick={() => generateQuadrantSynthesis(qk, qNarratives)}
+                                style={{ fontSize: "11px", fontWeight: 600, color: DM.white, background: col, border: "none", borderRadius: "3px", padding: "5px 12px", cursor: "pointer" }}
+                              >
+                                Generate →
+                              </button>
+                            )}
+                          </div>
+                          {isLoading && (
+                            <div style={{ padding: "20px 0", display: "flex", alignItems: "center", gap: "10px" }}>
+                              <div style={{ width: "14px", height: "14px", border: `2px solid ${DM.grey200}`, borderTopColor: col, borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
+                              <span style={{ fontSize: "11px", fontWeight: 300, color: DM.grey400 }}>Generating strategic synthesis…</span>
+                            </div>
+                          )}
+                          {content && !isLoading && (
+                            <div>
+                              <div style={{ background: `${col}08`, border: `1px solid ${col}30`, borderLeft: `3px solid ${col}`, borderRadius: "4px", padding: "16px 18px" }}>
+                                {content.split("\n\n").filter(Boolean).map((para, i) => (
+                                  <p key={i} style={{ fontSize: "12px", fontWeight: 300, color: DM.nearBlack, lineHeight: 1.75, margin: i < content.split("\n\n").filter(Boolean).length - 1 ? "0 0 14px" : "0" }}>{para}</p>
+                                ))}
+                              </div>
+                              <button
+                                onClick={() => setQuadrantSynthCache(prev => { const next = {...prev}; delete next[cacheKey]; return next; })}
+                                style={{ marginTop: "8px", fontSize: "10px", color: DM.grey400, background: "none", border: "none", cursor: "pointer", padding: "0" }}
+                              >
+                                ↺ Regenerate
+                              </button>
+                            </div>
+                          )}
                         </div>
                       );
                     })()}
