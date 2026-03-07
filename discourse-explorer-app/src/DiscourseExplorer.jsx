@@ -14,34 +14,34 @@ const Q_COLORS = { topLeft: "#0A3A75", topRight: "#2A8C51", bottomLeft: "#999999
 
 /* ─── PROVOCATION TYPES ─── */
 const PROV_TYPES = {
-  "Tension Activator": {
+  "Two Sides": {
     bg: "#FFF3CD", border: "#E6AC00", text: "#7A5800",
-    description: "Puts both forces directly to participants — maps which side they inhabit and why.",
-    placeholder: 'e.g. "about the gap between empowerment and protection"',
-    definition: "Puts both forces directly to participants: 'Some people feel [Force A]; others feel [Force B]. Which is closer to your experience — and where does the friction come from?'",
+    description: "Present both opposing forces and ask which feels closer to their truth.",
+    placeholder: "e.g. \"some people want full control over their money, others want to hand it over \u2014 which camp are you in?\"",
+    definition: "Puts both forces directly to participants: 'Some people feel [Force A]; others feel [Force B]. Which is closer to your experience \u2014 and where does the friction come from?'",
   },
-  "Diagnostic Statement": {
+  "Bold Claim": {
     bg: "#FFE8E8", border: "#DB2B39", text: "#8B0000",
-    description: "A bold claim in corpus language. Does this ring true for you?",
-    placeholder: 'e.g. "using the banking as captivity metaphor"',
+    description: "A provocative statement in real discourse language \u2014 does this ring true?",
+    placeholder: "e.g. \"people describe their bank as a landlord they can\u2019t leave \u2014 does that land for you?\"",
     definition: "A bold claim using corpus language that participants react to: 'We came across people describing [category] as [verbatim corpus phrase]. Does that ring true for you?'",
   },
   "Future Scenario": {
     bg: "#E8F0FF", border: "#3366CC", text: "#1A3A7A",
     description: "A near-future world where the tension resolves one way. What does that feel like?",
-    placeholder: 'e.g. "where digital trust has fully replaced relationship bankers"',
-    definition: "Presents a near-future world where the tension has resolved in one direction: 'Imagine it's [year] and [Force A has won]. What does that world feel like — and is that a good thing?'",
+    placeholder: "e.g. \"it\u2019s 2030 and your most trusted financial adviser is an AI \u2014 is that a relief or a loss?\"",
+    definition: "Presents a near-future world where the tension has resolved in one direction: 'Imagine it\u2019s [year] and [Force A has won]. What does that world feel like \u2014 and is that a good thing?'",
   },
-  "Cultural Mirror": {
+  "Language Playback": {
     bg: "#E8F8EE", border: "#2A8C51", text: "#1A5230",
-    description: "Plays actual discourse language back. What does that language tell you?",
-    placeholder: 'e.g. "playing back the empowerment exit language"',
+    description: "Play real words from the discourse back to participants \u2014 what do they reveal?",
+    placeholder: "e.g. \"people keep using the word escape when they talk about switching banks \u2014 what does that tell you?\"",
     definition: "Plays back actual discourse language to participants: 'We found people using the phrase [metaphor or framing from corpus] when talking about [subject]. What does that language tell you about how people really feel?'",
   },
-  "Reframe Challenge": {
+  "Flip It": {
     bg: "#F3E8FF", border: "#7B3FA0", text: "#4A1A6A",
-    description: "Asks participants to reason from an unexpected angle. Breaks category assumptions.",
-    placeholder: 'e.g. "if banking were a coaching relationship"',
+    description: "Ask participants to reason from an unexpected angle and break category assumptions.",
+    placeholder: "e.g. \"if your bank were a personal trainer rather than a security guard, what would it do differently?\"",
     definition: "Asks participants to reason from an unexpected angle: 'If [category] were [adjacent category], what would it need to do differently?'",
   },
 };
@@ -316,11 +316,11 @@ const SAMPLE_TENSIONS = [
 ];
 
 const SAMPLE_PROVOCATIONS = [
-  { id: 1, tensionId: 1, type: "Tension Activator", title: "What if empowerment meant needing the bank less?", text: "If the only time clients describe feeling empowered is when they leave, perhaps genuine empowerment means helping clients outgrow your services \u2014 and trusting they\u2019ll come back for the next level.", evidence: "Empowerment Exit narrative \u2014 clients consistently describe self-directed platforms as liberating." },
-  { id: 2, tensionId: 1, type: "Diagnostic Statement", title: "When clients say they want \u2018control,\u2019 what are they actually asking to control?", text: "The empowerment discourse is saturated with control language. But control of what? Investments? Fees? The relationship itself? Unpacking this reveals whether empowerment is about financial capability or relational autonomy.", evidence: "Linguistic analysis across r/FIREUK and r/fatFIRE \u2014 \u2018control\u2019 appears 3x more often than \u2018growth\u2019 in trust contexts." },
-  { id: 3, tensionId: 2, type: "Reframe Challenge", title: "Could heritage be reframed as proof of adaptability rather than proof of endurance?", text: "The heritage narrative currently says \u2018we\u2019ve survived.\u2019 But survival is passive. What if 150 years of history was evidence of radical reinvention \u2014 the trust credential becoming \u2018we\u2019ve changed more than anyone\u2019?", evidence: "Heritage Authority narrative \u2014 positive heritage references correlate with Asian markets; negative with UK/US digital-native segments." },
+  { id: 1, tensionId: 1, type: "Two Sides", title: "What if empowerment meant needing the bank less?", text: "If the only time clients describe feeling empowered is when they leave, perhaps genuine empowerment means helping clients outgrow your services \u2014 and trusting they\u2019ll come back for the next level.", evidence: "Empowerment Exit narrative \u2014 clients consistently describe self-directed platforms as liberating." },
+  { id: 2, tensionId: 1, type: "Bold Claim", title: "When clients say they want \u2018control,\u2019 what are they actually asking to control?", text: "The empowerment discourse is saturated with control language. But control of what? Investments? Fees? The relationship itself? Unpacking this reveals whether empowerment is about financial capability or relational autonomy.", evidence: "Linguistic analysis across r/FIREUK and r/fatFIRE \u2014 \u2018control\u2019 appears 3x more often than \u2018growth\u2019 in trust contexts." },
+  { id: 3, tensionId: 2, type: "Flip It", title: "Could heritage be reframed as proof of adaptability rather than proof of endurance?", text: "The heritage narrative currently says \u2018we\u2019ve survived.\u2019 But survival is passive. What if 150 years of history was evidence of radical reinvention \u2014 the trust credential becoming \u2018we\u2019ve changed more than anyone\u2019?", evidence: "Heritage Authority narrative \u2014 positive heritage references correlate with Asian markets; negative with UK/US digital-native segments." },
   { id: 4, tensionId: 3, type: "Future Scenario", title: "What if the most trusted banker in 2030 isn\u2019t a person?", text: "Algorithmic Trust is a frontier signal, but it\u2019s growing. The first institution to make AI-mediated advice feel personally trustworthy \u2014 warm, not cold \u2014 may redefine the category.", evidence: "Algorithmic Trust narrative \u2014 FT Alphaville and Reddit discourse on AI vs. human adviser trust." },
-  { id: 5, tensionId: 4, type: "Cultural Mirror", title: "Does showing everything make a premium bank feel less premium?", text: "Radical transparency is the emerging trust baseline. But premium positioning has historically relied on mystique and exclusivity. The provocation: can you be fully transparent and still feel aspirational?", evidence: "Transparency Imperative and Heritage Authority narratives \u2014 conflicting trust signals across segments." },
+  { id: 5, tensionId: 4, type: "Language Playback", title: "Does showing everything make a premium bank feel less premium?", text: "Radical transparency is the emerging trust baseline. But premium positioning has historically relied on mystique and exclusivity. The provocation: can you be fully transparent and still feel aspirational?", evidence: "Transparency Imperative and Heritage Authority narratives \u2014 conflicting trust signals across segments." },
 ];
 
 /* ─── API Prompts ─── */
