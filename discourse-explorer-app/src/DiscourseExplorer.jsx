@@ -12,6 +12,22 @@ const DM = {
 };
 const Q_COLORS = { topLeft: "#0A3A75", topRight: "#2A8C51", bottomLeft: "#999999", bottomRight: "#EB573F" };
 
+const PROV_TYPES = [
+  { key: "Tension Activator", short: "Tension Activator", description: "Puts both forces directly to participants — maps which side they inhabit and why.", placeholder: `e.g. "about the gap between empowerment and protection"`, definition: "Puts both forces directly to participants: 'Some people feel [Force A]; others feel [Force B]. Which is closer to your experience — and where does the friction come from?'" },
+  { key: "Diagnostic Statement", short: "Diagnostic", description: "A bold claim in corpus language. Does this ring true for you?", placeholder: `e.g. "using the banking as captivity metaphor"`, definition: "A bold claim using corpus language that participants react to: 'We came across people describing [category] as [verbatim corpus phrase]. Does that ring true for you?'" },
+  { key: "Future Scenario", short: "Future Scenario", description: "A near-future world where the tension resolves one way.", placeholder: `e.g. "where digital trust has fully replaced relationship bankers"`, definition: "Presents a near-future world where the tension has resolved in one direction: 'Imagine it's [year] and [Force A has won]. What does that world feel like — and is that a good thing?'" },
+  { key: "Cultural Mirror", short: "Cultural Mirror", description: "Plays actual discourse language back. What does that language tell you?", placeholder: `e.g. "playing back the empowerment exit language"`, definition: "Plays back actual discourse language to participants: 'We found people using the phrase [metaphor or framing from corpus] when talking about [subject]. What does that language tell you about how people really feel?'" },
+  { key: "Reframe Challenge", short: "Reframe", description: "Asks participants to reason from an unexpected angle. Breaks category assumptions.", placeholder: `e.g. "if banking were a coaching relationship"`, definition: "Asks participants to reason from an unexpected angle: 'If [category] were [adjacent category], what would it need to do differently?'" },
+];
+
+const TYPE_COLORS = {
+  "Tension Activator":   { bg: "#FFF3CD", border: "#E6AC00", text: "#7A5800" },
+  "Diagnostic Statement": { bg: "#FFE8E8", border: "#DB2B39", text: "#8B0000" },
+  "Future Scenario":     { bg: "#E8F0FF", border: "#3366CC", text: "#1A3A7A" },
+  "Cultural Mirror":     { bg: "#E8F8EE", border: "#2A8C51", text: "#1A5230" },
+  "Reframe Challenge":   { bg: "#F3E8FF", border: "#7B3FA0", text: "#4A1A6A" },
+};
+
 /* ─── DEMO DATA ─── */
 const SAMPLE_META = {
   territory: "The Language of Empowering Trust",
@@ -281,11 +297,11 @@ const SAMPLE_TENSIONS = [
 ];
 
 const SAMPLE_PROVOCATIONS = [
-  { id: 1, tensionId: 1, title: "What if empowerment meant needing the bank less?", text: "If the only time clients describe feeling empowered is when they leave, perhaps genuine empowerment means helping clients outgrow your services \u2014 and trusting they\u2019ll come back for the next level.", evidence: "Empowerment Exit narrative \u2014 clients consistently describe self-directed platforms as liberating." },
-  { id: 2, tensionId: 1, title: "When clients say they want \u2018control,\u2019 what are they actually asking to control?", text: "The empowerment discourse is saturated with control language. But control of what? Investments? Fees? The relationship itself? Unpacking this reveals whether empowerment is about financial capability or relational autonomy.", evidence: "Linguistic analysis across r/FIREUK and r/fatFIRE \u2014 \u2018control\u2019 appears 3x more often than \u2018growth\u2019 in trust contexts." },
-  { id: 3, tensionId: 2, title: "Could heritage be reframed as proof of adaptability rather than proof of endurance?", text: "The heritage narrative currently says \u2018we\u2019ve survived.\u2019 But survival is passive. What if 150 years of history was evidence of radical reinvention \u2014 the trust credential becoming \u2018we\u2019ve changed more than anyone\u2019?", evidence: "Heritage Authority narrative \u2014 positive heritage references correlate with Asian markets; negative with UK/US digital-native segments." },
-  { id: 4, tensionId: 3, title: "What if the most trusted banker in 2030 isn\u2019t a person?", text: "Algorithmic Trust is a frontier signal, but it\u2019s growing. The first institution to make AI-mediated advice feel personally trustworthy \u2014 warm, not cold \u2014 may redefine the category.", evidence: "Algorithmic Trust narrative \u2014 FT Alphaville and Reddit discourse on AI vs. human adviser trust." },
-  { id: 5, tensionId: 4, title: "Does showing everything make a premium bank feel less premium?", text: "Radical transparency is the emerging trust baseline. But premium positioning has historically relied on mystique and exclusivity. The provocation: can you be fully transparent and still feel aspirational?", evidence: "Transparency Imperative and Heritage Authority narratives \u2014 conflicting trust signals across segments." },
+  { id: 1, tensionId: 1, type: "Cultural Mirror", title: "What if empowerment meant needing the bank less?", text: "If the only time clients describe feeling empowered is when they leave, perhaps genuine empowerment means helping clients outgrow your services \u2014 and trusting they\u2019ll come back for the next level.", evidence: "Empowerment Exit narrative \u2014 clients consistently describe self-directed platforms as liberating." },
+  { id: 2, tensionId: 1, type: "Tension Activator", title: "When clients say they want \u2018control,\u2019 what are they actually asking to control?", text: "The empowerment discourse is saturated with control language. But control of what? Investments? Fees? The relationship itself? Unpacking this reveals whether empowerment is about financial capability or relational autonomy.", evidence: "Linguistic analysis across r/FIREUK and r/fatFIRE \u2014 \u2018control\u2019 appears 3x more often than \u2018growth\u2019 in trust contexts." },
+  { id: 3, tensionId: 2, type: "Reframe Challenge", title: "Could heritage be reframed as proof of adaptability rather than proof of endurance?", text: "The heritage narrative currently says \u2018we\u2019ve survived.\u2019 But survival is passive. What if 150 years of history was evidence of radical reinvention \u2014 the trust credential becoming \u2018we\u2019ve changed more than anyone\u2019?", evidence: "Heritage Authority narrative \u2014 positive heritage references correlate with Asian markets; negative with UK/US digital-native segments." },
+  { id: 4, tensionId: 3, type: "Future Scenario", title: "What if the most trusted banker in 2030 isn\u2019t a person?", text: "Algorithmic Trust is a frontier signal, but it\u2019s growing. The first institution to make AI-mediated advice feel personally trustworthy \u2014 warm, not cold \u2014 may redefine the category.", evidence: "Algorithmic Trust narrative \u2014 FT Alphaville and Reddit discourse on AI vs. human adviser trust." },
+  { id: 5, tensionId: 4, type: "Diagnostic Statement", title: "Does showing everything make a premium bank feel less premium?", text: "Radical transparency is the emerging trust baseline. But premium positioning has historically relied on mystique and exclusivity. The provocation: can you be fully transparent and still feel aspirational?", evidence: "Transparency Imperative and Heritage Authority narratives \u2014 conflicting trust signals across segments." },
 ];
 
 /* ─── API Prompts ─── */
@@ -342,10 +358,14 @@ Return ONLY a JSON object (no markdown, no fences):
 Position each narrative on the y-axis (0=top, 1=bottom). Be precise.`;
 }
 
-function buildProvocationPrompt(tensions, narratives, meta, userPrompt) {
+function buildProvocationPrompt(tensions, narratives, meta, userPrompt, selectedType) {
   const ts = tensions.map(t => `T${t.rank}: ${t.forceA} \u2194 ${t.forceB} \u2014 ${t.summary}`).join("\n");
+  const typeInfo = selectedType ? PROV_TYPES.find(t => t.key === selectedType) : null;
+  const typeBlock = typeInfo ? `\nPROVOCATION TYPE: ${selectedType}\nTYPE DEFINITION: ${typeInfo.definition}\n` : "";
+  const typeField = typeInfo ? `"type": "${selectedType}",\n  ` : "";
+  const typeStyle = typeInfo ? ` in the style of ${selectedType}` : "";
   return `You are a discourse strategist for d+m. Generate a fieldwork provocation for ${meta.client}'s "${meta.territory}" territory.
-
+${typeBlock}
 TENSIONS:
 ${ts}
 
@@ -357,13 +377,14 @@ ${DISCOURSE_NARRATIVE_VOICE}
 Return ONLY a JSON object (no markdown, no fences):
 {
   "tensionId": <id of most relevant tension>,
-  "title": "A single-sentence question that would provoke discussion in fieldwork",
+  ${typeField}"title": "A single-sentence question${typeStyle} that would provoke discussion in fieldwork",
   "text": "2-3 sentences expanding the provocation",
   "evidence": "Brief citation grounding it in the analysis"
 }
 
-The title MUST be a single-sentence question. Not a two-part tension format.`;
+The title MUST be a single-sentence question. Start from corpus language.`;
 }
+
 
 function buildRefinePrompt(currentAxis, narratives, meta, userPrompt) {
   const ns = narratives.map(n => `- ${n.name} (salience:${n.salience}%): ${n.description}`).join("\n");
@@ -478,6 +499,10 @@ function DiscourseExplorer() {
   const [provPrompt, setProvPrompt] = useState("");
   const [provGenerating, setProvGenerating] = useState(false);
   const [provError, setProvError] = useState("");
+  const [provSelectedType, setProvSelectedType] = useState(null);
+  const [provExpandedType, setProvExpandedType] = useState(null);
+  const [provDeleteConfirmId, setProvDeleteConfirmId] = useState(null);
+  const [provEditingTypeId, setProvEditingTypeId] = useState(null);
 
   const [editingId, setEditingId] = useState(null);
   const [editingKey, setEditingKey] = useState(null);
@@ -527,6 +552,7 @@ function DiscourseExplorer() {
     setPhase("onboarding"); setMeta(null); setAllNarratives([]); setAllAxes([]); setAllTensions([]);
     setAllProvocations([]); setAllSources([]); setIsDemo(false); setSelectedAxisId(null);
     setSelectedNarrative(null); setNarratives([]); setActiveView("map");
+    setProvSelectedType(null); setProvExpandedType(null); setProvDeleteConfirmId(null); setProvEditingTypeId(null);
     if (fileRef.current) fileRef.current.value = "";
   }, []);
 
@@ -543,7 +569,7 @@ function DiscourseExplorer() {
     setGenerating(true); setGenError("");
     try {
       const prompt = buildAxisPrompt(allNarratives, meta, newAngle.trim());
-      const res = await fetch("/api/claude", {
+      const res = await fetch("https://api.anthropic.com/v1/messages", {
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ model: "claude-sonnet-4-20250514", max_tokens: 2000, messages: [{ role: "user", content: prompt }] }),
       });
@@ -559,12 +585,14 @@ function DiscourseExplorer() {
   }, [newAngle, generating, allNarratives, meta]);
 
   // Generate provocation
-  const generateProvocation = useCallback(async () => {
-    if (!provPrompt.trim() || provGenerating) return;
+  const generateProvocation = useCallback(async (typeOverride, focusOverride) => {
+    const prompt_text = focusOverride !== undefined ? focusOverride : provPrompt;
+    const type_to_use = typeOverride !== undefined ? typeOverride : provSelectedType;
+    if (!prompt_text.trim() || provGenerating) return;
     setProvGenerating(true); setProvError("");
     try {
-      const prompt = buildProvocationPrompt(allTensions, allNarratives, meta, provPrompt.trim());
-      const res = await fetch("/api/claude", {
+      const prompt = buildProvocationPrompt(allTensions, allNarratives, meta, prompt_text.trim(), type_to_use);
+      const res = await fetch("https://api.anthropic.com/v1/messages", {
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ model: "claude-sonnet-4-20250514", max_tokens: 1000, messages: [{ role: "user", content: prompt }] }),
       });
@@ -573,11 +601,13 @@ function DiscourseExplorer() {
       const prov = JSON.parse(text.replace(/```json|```/g, "").trim());
       prov.id = Math.max(0, ...allProvocations.map(p => p.id)) + 1;
       prov._generated = true;
+      if (!prov.type && type_to_use) prov.type = type_to_use;
       setAllProvocations(prev => [...prev, prov]);
       setProvPrompt("");
+      setProvExpandedType(null);
     } catch (err) { setProvError("Failed: " + err.message); }
     setProvGenerating(false);
-  }, [provPrompt, provGenerating, allTensions, allNarratives, meta, allProvocations]);
+  }, [provPrompt, provSelectedType, provGenerating, allTensions, allNarratives, meta, allProvocations]);
 
   // Refine narrative
   const refineNarrative = useCallback(async () => {
@@ -585,7 +615,7 @@ function DiscourseExplorer() {
     setRefining(true); setRefineError("");
     try {
       const prompt = buildRefinePrompt(currentAxis, allNarratives, meta, refinePrompt.trim());
-      const res = await fetch("/api/claude", {
+      const res = await fetch("https://api.anthropic.com/v1/messages", {
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ model: "claude-sonnet-4-20250514", max_tokens: 2000, messages: [{ role: "user", content: prompt }] }),
       });
@@ -678,6 +708,14 @@ function DiscourseExplorer() {
   const TensionPill = ({ rank }) => (
     <span style={{ fontFamily: "'Poppins'", fontSize: "9px", fontWeight: 700, color: DM.white, background: DM.red, padding: "2px 7px", borderRadius: "3px" }}>T{rank}</span>
   );
+  const TypeTag = ({ type, small = false }) => {
+    const colors = TYPE_COLORS[type] || { bg: DM.grey100, border: DM.grey200, text: DM.grey400 };
+    return (
+      <span style={{ display: "inline-block", padding: small ? "2px 7px" : "3px 9px", borderRadius: "3px", background: colors.bg, border: `1px solid ${colors.border}`, color: colors.text, fontFamily: "'Space Mono', monospace", fontSize: small ? "8px" : "9px", fontWeight: 500, letterSpacing: "0.04em", whiteSpace: "nowrap" }}>
+        {type.toUpperCase()}
+      </span>
+    );
+  };
   const EditableText = ({ value, onChange, style, multiline, onStartEdit, onStopEdit }) => {
     const [editing, setEditing] = useState(false);
     if (editing) {
@@ -1178,52 +1216,108 @@ function DiscourseExplorer() {
           {/* ─── PROVOCATIONS TAB ─── */}
           {activeView === "provocations" && (
             <div style={{ flex: 1, overflowY: "auto", padding: "40px" }}>
-              <div style={{ maxWidth: "780px", margin: "0 auto", animation: "fadeUp 0.4s ease-out" }}>
-                <SectionLabel>Provocations for fieldwork</SectionLabel>
-                <h2 style={{ fontFamily: "'Anton'", fontSize: "28px", lineHeight: 1.1, marginBottom: "6px" }}>{allProvocations.length} provocations</h2>
-                <p style={{ fontSize: "12px", fontWeight: 300, color: DM.grey600, lineHeight: 1.65, marginBottom: "12px" }}>Grounded in discourse evidence. Framed to provoke reaction from research participants. Drag to reorder, click to edit.</p>
-                {/* AI Generate bar */}
-                <div style={{ marginBottom: "24px", padding: "16px 20px", borderRadius: "4px", background: DM.nearBlack, border: `1px solid ${DM.yellow}30` }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "8px" }}>
-                    <div style={{ width: "6px", height: "6px", borderRadius: "50%", background: DM.yellow }} />
-                    <span style={{ fontFamily: "'Space Mono'", fontSize: "9px", color: DM.yellow }}>AI Generate</span>
-                    <span style={{ fontSize: "10px", fontWeight: 300, color: "rgba(255,255,255,0.4)" }}>{"\u2014"} describe what you want to provoke</span>
+              <div style={{ maxWidth: "820px", margin: "0 auto", animation: "fadeUp 0.4s ease-out" }}>
+                {/* Header */}
+                <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: "24px" }}>
+                  <div>
+                    <SectionLabel>Provocations for fieldwork</SectionLabel>
+                    <h2 style={{ fontFamily: "'Anton'", fontSize: "28px", lineHeight: 1.1 }}>{allProvocations.length} provocations</h2>
                   </div>
-                  <div style={{ display: "flex", gap: "8px" }}>
-                    <input value={provPrompt} onChange={e => setProvPrompt(e.target.value)} onKeyDown={e => e.key === "Enter" && generateProvocation()}
-                      placeholder={'e.g. "A provocation about digital trust for Gen Z" \u2022 "Something about heritage vs. innovation"'}
-                      style={{ flex: 1, padding: "10px 14px", border: "1px solid rgba(255,255,255,0.15)", borderRadius: "4px", fontFamily: "'Poppins'", fontSize: "12px", color: DM.white, background: "rgba(255,255,255,0.06)", outline: "none" }} />
-                    <button onClick={generateProvocation} disabled={!provPrompt.trim() || provGenerating}
-                      style={{ padding: "10px 20px", border: "none", borderRadius: "4px", background: provPrompt.trim() && !provGenerating ? DM.yellow : "rgba(255,255,255,0.1)", color: provPrompt.trim() && !provGenerating ? DM.black : "rgba(255,255,255,0.3)", fontFamily: "'Poppins'", fontSize: "11px", fontWeight: 600, cursor: provPrompt.trim() && !provGenerating ? "pointer" : "default", whiteSpace: "nowrap" }}>
-                      {provGenerating ? "Generating..." : "Generate \u2192"}
-                    </button>
-                  </div>
-                  {provError && <p style={{ color: "#FF6B6B", fontSize: "10px", marginTop: "6px" }}>{provError}</p>}
+                  <p style={{ fontSize: "11px", fontWeight: 300, color: DM.grey400 }}>Drag to reorder · click text to edit · click type tag to reassign</p>
                 </div>
+
+                {/* Type coverage + generate panel */}
+                <div style={{ background: DM.grey50, border: `1px solid ${DM.grey200}`, borderRadius: "6px", padding: "16px 20px", marginBottom: "24px" }}>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "12px" }}>
+                    <span style={{ fontFamily: "'Space Mono'", fontSize: "9px", letterSpacing: "0.1em", color: DM.grey400 }}>TYPE COVERAGE — click a type to generate</span>
+                    {provError && <span style={{ fontSize: "9px", color: "#C82A27" }}>{provError}</span>}
+                  </div>
+                  <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                    {PROV_TYPES.map(t => {
+                      const count = allProvocations.filter(p => p.type === t.key).length;
+                      const isEmpty = count === 0;
+                      const isExpanded = provExpandedType === t.key;
+                      const colors = TYPE_COLORS[t.key];
+                      return (
+                        <div key={t.key} style={{ flex: "1 1 auto", minWidth: "140px" }}>
+                          <button onClick={() => setProvExpandedType(isExpanded ? null : t.key)} style={{ width: "100%", padding: "10px 12px", borderRadius: "4px", border: isExpanded ? `2px solid ${colors.border}` : isEmpty ? `1.5px dashed #BBBBBB` : `1.5px solid ${colors.border}`, background: isExpanded ? colors.bg : isEmpty ? DM.white : colors.bg + "88", cursor: "pointer", textAlign: "left", transition: "all 0.15s ease" }}>
+                            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "4px" }}>
+                              <span style={{ fontFamily: "'Space Mono'", fontSize: "8px", fontWeight: 700, letterSpacing: "0.06em", color: isEmpty ? DM.grey400 : colors.text }}>{t.short.toUpperCase()}</span>
+                              <span style={{ fontFamily: "'Space Mono'", fontSize: "14px", fontWeight: 700, color: isEmpty ? "#BBBBBB" : colors.border }}>{count}</span>
+                            </div>
+                            <div style={{ fontFamily: "'Poppins'", fontSize: "9px", color: isEmpty ? DM.grey400 : DM.grey600, lineHeight: 1.4, fontWeight: 300 }}>{t.description}</div>
+                          </button>
+                          {isExpanded && (
+                            <div style={{ marginTop: "4px", padding: "12px", background: colors.bg, border: `1.5px solid ${colors.border}`, borderRadius: "4px", animation: "fadeUp 0.15s ease-out" }}>
+                              <div style={{ fontFamily: "'Space Mono'", fontSize: "8px", color: colors.text, letterSpacing: "0.06em", marginBottom: "6px", fontWeight: 700 }}>FOCUS (OPTIONAL)</div>
+                              <input value={provPrompt} onChange={e => setProvPrompt(e.target.value)}
+                                onKeyDown={e => e.key === "Enter" && generateProvocation(t.key, provPrompt)}
+                                placeholder={t.placeholder}
+                                style={{ width: "100%", padding: "8px 10px", border: `1px solid ${colors.border}`, borderRadius: "3px", background: DM.white, fontFamily: "'Poppins'", fontSize: "11px", color: DM.black, outline: "none", boxSizing: "border-box", marginBottom: "8px" }} />
+                              <button onClick={() => generateProvocation(t.key, provPrompt)} disabled={provGenerating}
+                                style={{ width: "100%", padding: "8px", background: provGenerating ? DM.grey200 : colors.border, border: "none", borderRadius: "3px", color: provGenerating ? DM.grey400 : DM.white, fontFamily: "'Space Mono'", fontSize: "9px", fontWeight: 700, letterSpacing: "0.08em", cursor: provGenerating ? "not-allowed" : "pointer", transition: "all 0.15s" }}>
+                                {provGenerating ? "GENERATING..." : `GENERATE ${t.short.toUpperCase()}`}
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Provocation cards */}
                 <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
                   {allProvocations.map((p, idx) => {
                     const tension = allTensions.find(t => t.id === p.tensionId);
+                    const isConfirmingDelete = provDeleteConfirmId === p.id;
+                    const isEditingType = provEditingTypeId === p.id;
                     return (
                       <div key={p.id} draggable onDragStart={() => handleDragStart("provocation", idx)}
                         onDragOver={e => handleDragOver(e, idx)} onDrop={() => handleDrop("provocation", idx)}
-                        style={{ padding: "18px 22px", borderRadius: "4px", border: dragOverIdx === idx && dragItemType === "provocation" ? `2px solid ${DM.yellow}` : `1px solid ${DM.grey200}`, background: DM.white, cursor: "grab" }}>
-                        <div style={{ display: "flex", alignItems: "flex-start", gap: "12px", marginBottom: "8px" }}>
+                        style={{ padding: "18px 22px", borderRadius: "4px", border: dragOverIdx === idx && dragItemType === "provocation" ? `2px solid ${DM.yellow}` : `1px solid ${DM.grey200}`, background: DM.white, cursor: "grab", position: "relative" }}>
+                        {/* Card header row */}
+                        <div style={{ display: "flex", alignItems: "flex-start", gap: "8px", marginBottom: "10px", flexWrap: "wrap" }}>
                           {tension && <TensionPill rank={tension.rank} />}
+                          {isEditingType ? (
+                            <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", alignItems: "center" }}>
+                              {PROV_TYPES.map(t => (
+                                <button key={t.key} onClick={() => { updateProvocation(p.id, "type", t.key); setProvEditingTypeId(null); }}
+                                  style={{ padding: "2px 8px", borderRadius: "3px", cursor: "pointer", background: TYPE_COLORS[t.key].bg, border: `1.5px solid ${TYPE_COLORS[t.key].border}`, color: TYPE_COLORS[t.key].text, fontFamily: "'Space Mono'", fontSize: "8px", fontWeight: 600, letterSpacing: "0.04em" }}>
+                                  {t.short.toUpperCase()}
+                                </button>
+                              ))}
+                              <button onClick={() => setProvEditingTypeId(null)} style={{ padding: "2px 8px", borderRadius: "3px", cursor: "pointer", background: "transparent", border: `1px solid ${DM.grey200}`, color: DM.grey400, fontFamily: "'Space Mono'", fontSize: "8px" }}>✕</button>
+                            </div>
+                          ) : p.type ? (
+                            <button onClick={() => setProvEditingTypeId(p.id)} style={{ background: "none", border: "none", padding: 0, cursor: "pointer" }} title="Change type">
+                              <TypeTag type={p.type} />
+                            </button>
+                          ) : (
+                            <button onClick={() => setProvEditingTypeId(p.id)} style={{ padding: "3px 9px", borderRadius: "3px", border: `1px dashed ${DM.grey200}`, background: "transparent", color: DM.grey400, fontFamily: "'Space Mono'", fontSize: "9px", cursor: "pointer" }}>+ type</button>
+                          )}
                           {p._generated && <span style={{ fontFamily: "'Space Mono'", fontSize: "8px", color: DM.yellow, background: "#FFF9DB", padding: "2px 6px", borderRadius: "3px" }}>AI</span>}
-                          <div style={{ flex: 1 }}>
-                            <EditableText value={p.title} onChange={v => updateProvocation(p.id, "title", v)} style={{ fontSize: "14px", fontWeight: 600, lineHeight: 1.4, fontFamily: "'Poppins'" }} />
+                          <div style={{ marginLeft: "auto", flexShrink: 0 }}>
+                            {isConfirmingDelete ? (
+                              <div style={{ display: "flex", gap: "6px", alignItems: "center" }}>
+                                <span style={{ fontSize: "9px", color: DM.grey400 }}>Delete?</span>
+                                <button onClick={() => { setAllProvocations(prev => prev.filter(x => x.id !== p.id)); setProvDeleteConfirmId(null); }}
+                                  style={{ padding: "2px 8px", borderRadius: "3px", background: "#DB2B39", border: "none", color: DM.white, fontFamily: "'Space Mono'", fontSize: "8px", fontWeight: 700, cursor: "pointer" }}>YES</button>
+                                <button onClick={() => setProvDeleteConfirmId(null)}
+                                  style={{ padding: "2px 8px", borderRadius: "3px", background: DM.grey100, border: "none", color: DM.grey600, fontFamily: "'Space Mono'", fontSize: "8px", cursor: "pointer" }}>NO</button>
+                              </div>
+                            ) : (
+                              <button onClick={() => setProvDeleteConfirmId(p.id)} style={{ background: "none", border: "none", color: DM.grey200, fontSize: "13px", cursor: "pointer", padding: "0 4px", lineHeight: 1 }} title="Delete">✕</button>
+                            )}
                           </div>
-                          <button onClick={() => setAllProvocations(prev => prev.filter(x => x.id !== p.id))}
-                            style={{ background: "none", border: "none", cursor: "pointer", color: DM.grey300, fontSize: "16px", lineHeight: 1, padding: "2px 6px", borderRadius: "3px", flexShrink: 0 }}
-                            onMouseEnter={e => e.target.style.color = "#e53e3e"} onMouseLeave={e => e.target.style.color = DM.grey300}
-                            title="Delete provocation">×</button>
                         </div>
-                        <div style={{ paddingLeft: "0" }}>
-                          <EditableText value={p.text} onChange={v => updateProvocation(p.id, "text", v)} multiline style={{ fontSize: "12px", fontWeight: 300, color: DM.grey600, lineHeight: 1.65, marginBottom: "8px", fontFamily: "'Poppins'" }} />
-                          <div style={{ display: "flex", alignItems: "flex-start", gap: "6px" }}>
-                            <span style={{ fontSize: "10px", fontWeight: 500, color: DM.grey400, flexShrink: 0 }}>Evidence:</span>
-                            <EditableText value={p.evidence} onChange={v => updateProvocation(p.id, "evidence", v)} style={{ fontSize: "10px", fontWeight: 300, color: DM.grey400, lineHeight: 1.5, fontFamily: "'Poppins'" }} />
-                          </div>
+                        <div style={{ marginBottom: "8px" }}>
+                          <EditableText value={p.title} onChange={v => updateProvocation(p.id, "title", v)} style={{ fontSize: "14px", fontWeight: 600, lineHeight: 1.4, fontFamily: "'Poppins'" }} />
+                        </div>
+                        <EditableText value={p.text} onChange={v => updateProvocation(p.id, "text", v)} multiline style={{ fontSize: "12px", fontWeight: 300, color: DM.grey600, lineHeight: 1.65, marginBottom: "8px", fontFamily: "'Poppins'" }} />
+                        <div style={{ display: "flex", alignItems: "flex-start", gap: "6px" }}>
+                          <span style={{ fontSize: "10px", fontWeight: 500, color: DM.grey400, flexShrink: 0 }}>Evidence:</span>
+                          <EditableText value={p.evidence} onChange={v => updateProvocation(p.id, "evidence", v)} style={{ fontSize: "10px", fontWeight: 300, color: DM.grey400, lineHeight: 1.5, fontFamily: "'Poppins'" }} />
                         </div>
                       </div>
                     );
@@ -1233,6 +1327,19 @@ function DiscourseExplorer() {
                   const newId = Math.max(0, ...allProvocations.map(p => p.id)) + 1;
                   setAllProvocations(prev => [...prev, { id: newId, tensionId: allTensions[0]?.id || 1, title: "New provocation question?", text: "Description...", evidence: "Source..." }]);
                 }} style={{ marginTop: "16px", width: "100%", padding: "12px", border: `1.5px dashed ${DM.grey200}`, borderRadius: "4px", background: "transparent", color: DM.grey400, fontFamily: "'Poppins'", fontSize: "12px", cursor: "pointer" }}>+ Add provocation manually</button>
+
+                {/* Type guide */}
+                <div style={{ marginTop: "24px", padding: "14px 18px", background: DM.white, border: `1px solid ${DM.grey100}`, borderRadius: "4px" }}>
+                  <div style={{ fontFamily: "'Space Mono'", fontSize: "9px", letterSpacing: "0.08em", color: DM.grey400, marginBottom: "10px" }}>PROVOCATION TYPES — QUICK GUIDE</div>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" }}>
+                    {PROV_TYPES.map(t => (
+                      <div key={t.key} style={{ display: "flex", gap: "8px", alignItems: "flex-start" }}>
+                        <TypeTag type={t.key} small />
+                        <span style={{ fontFamily: "'Poppins'", fontSize: "10px", color: DM.grey600, lineHeight: 1.4, fontWeight: 300 }}>{t.description}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </div>
             </div>
           )}
