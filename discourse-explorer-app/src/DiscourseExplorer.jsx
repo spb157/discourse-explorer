@@ -12,22 +12,6 @@ const DM = {
 };
 const Q_COLORS = { topLeft: "#0A3A75", topRight: "#2A8C51", bottomLeft: "#999999", bottomRight: "#EB573F" };
 
-const PROV_TYPES = [
-  { key: "Tension Activator", short: "Tension Activator", description: "Puts both forces directly to participants — maps which side they inhabit and why.", placeholder: `e.g. "about the gap between empowerment and protection"`, definition: "Puts both forces directly to participants: 'Some people feel [Force A]; others feel [Force B]. Which is closer to your experience — and where does the friction come from?'" },
-  { key: "Diagnostic Statement", short: "Diagnostic", description: "A bold claim in corpus language. Does this ring true for you?", placeholder: `e.g. "using the banking as captivity metaphor"`, definition: "A bold claim using corpus language that participants react to: 'We came across people describing [category] as [verbatim corpus phrase]. Does that ring true for you?'" },
-  { key: "Future Scenario", short: "Future Scenario", description: "A near-future world where the tension resolves one way.", placeholder: `e.g. "where digital trust has fully replaced relationship bankers"`, definition: "Presents a near-future world where the tension has resolved in one direction: 'Imagine it's [year] and [Force A has won]. What does that world feel like — and is that a good thing?'" },
-  { key: "Cultural Mirror", short: "Cultural Mirror", description: "Plays actual discourse language back. What does that language tell you?", placeholder: `e.g. "playing back the empowerment exit language"`, definition: "Plays back actual discourse language to participants: 'We found people using the phrase [metaphor or framing from corpus] when talking about [subject]. What does that language tell you about how people really feel?'" },
-  { key: "Reframe Challenge", short: "Reframe", description: "Asks participants to reason from an unexpected angle. Breaks category assumptions.", placeholder: `e.g. "if banking were a coaching relationship"`, definition: "Asks participants to reason from an unexpected angle: 'If [category] were [adjacent category], what would it need to do differently?'" },
-];
-
-const TYPE_COLORS = {
-  "Tension Activator":   { bg: "#FFF3CD", border: "#E6AC00", text: "#7A5800" },
-  "Diagnostic Statement": { bg: "#FFE8E8", border: "#DB2B39", text: "#8B0000" },
-  "Future Scenario":     { bg: "#E8F0FF", border: "#3366CC", text: "#1A3A7A" },
-  "Cultural Mirror":     { bg: "#E8F8EE", border: "#2A8C51", text: "#1A5230" },
-  "Reframe Challenge":   { bg: "#F3E8FF", border: "#7B3FA0", text: "#4A1A6A" },
-};
-
 /* ─── DEMO DATA ─── */
 const SAMPLE_META = {
   territory: "The Language of Empowering Trust",
@@ -297,11 +281,11 @@ const SAMPLE_TENSIONS = [
 ];
 
 const SAMPLE_PROVOCATIONS = [
-  { id: 1, tensionId: 1, type: "Cultural Mirror", title: "What if empowerment meant needing the bank less?", text: "If the only time clients describe feeling empowered is when they leave, perhaps genuine empowerment means helping clients outgrow your services \u2014 and trusting they\u2019ll come back for the next level.", evidence: "Empowerment Exit narrative \u2014 clients consistently describe self-directed platforms as liberating." },
-  { id: 2, tensionId: 1, type: "Tension Activator", title: "When clients say they want \u2018control,\u2019 what are they actually asking to control?", text: "The empowerment discourse is saturated with control language. But control of what? Investments? Fees? The relationship itself? Unpacking this reveals whether empowerment is about financial capability or relational autonomy.", evidence: "Linguistic analysis across r/FIREUK and r/fatFIRE \u2014 \u2018control\u2019 appears 3x more often than \u2018growth\u2019 in trust contexts." },
-  { id: 3, tensionId: 2, type: "Reframe Challenge", title: "Could heritage be reframed as proof of adaptability rather than proof of endurance?", text: "The heritage narrative currently says \u2018we\u2019ve survived.\u2019 But survival is passive. What if 150 years of history was evidence of radical reinvention \u2014 the trust credential becoming \u2018we\u2019ve changed more than anyone\u2019?", evidence: "Heritage Authority narrative \u2014 positive heritage references correlate with Asian markets; negative with UK/US digital-native segments." },
-  { id: 4, tensionId: 3, type: "Future Scenario", title: "What if the most trusted banker in 2030 isn\u2019t a person?", text: "Algorithmic Trust is a frontier signal, but it\u2019s growing. The first institution to make AI-mediated advice feel personally trustworthy \u2014 warm, not cold \u2014 may redefine the category.", evidence: "Algorithmic Trust narrative \u2014 FT Alphaville and Reddit discourse on AI vs. human adviser trust." },
-  { id: 5, tensionId: 4, type: "Diagnostic Statement", title: "Does showing everything make a premium bank feel less premium?", text: "Radical transparency is the emerging trust baseline. But premium positioning has historically relied on mystique and exclusivity. The provocation: can you be fully transparent and still feel aspirational?", evidence: "Transparency Imperative and Heritage Authority narratives \u2014 conflicting trust signals across segments." },
+  { id: 1, tensionId: 1, title: "What if empowerment meant needing the bank less?", text: "If the only time clients describe feeling empowered is when they leave, perhaps genuine empowerment means helping clients outgrow your services \u2014 and trusting they\u2019ll come back for the next level.", evidence: "Empowerment Exit narrative \u2014 clients consistently describe self-directed platforms as liberating." },
+  { id: 2, tensionId: 1, title: "When clients say they want \u2018control,\u2019 what are they actually asking to control?", text: "The empowerment discourse is saturated with control language. But control of what? Investments? Fees? The relationship itself? Unpacking this reveals whether empowerment is about financial capability or relational autonomy.", evidence: "Linguistic analysis across r/FIREUK and r/fatFIRE \u2014 \u2018control\u2019 appears 3x more often than \u2018growth\u2019 in trust contexts." },
+  { id: 3, tensionId: 2, title: "Could heritage be reframed as proof of adaptability rather than proof of endurance?", text: "The heritage narrative currently says \u2018we\u2019ve survived.\u2019 But survival is passive. What if 150 years of history was evidence of radical reinvention \u2014 the trust credential becoming \u2018we\u2019ve changed more than anyone\u2019?", evidence: "Heritage Authority narrative \u2014 positive heritage references correlate with Asian markets; negative with UK/US digital-native segments." },
+  { id: 4, tensionId: 3, title: "What if the most trusted banker in 2030 isn\u2019t a person?", text: "Algorithmic Trust is a frontier signal, but it\u2019s growing. The first institution to make AI-mediated advice feel personally trustworthy \u2014 warm, not cold \u2014 may redefine the category.", evidence: "Algorithmic Trust narrative \u2014 FT Alphaville and Reddit discourse on AI vs. human adviser trust." },
+  { id: 5, tensionId: 4, title: "Does showing everything make a premium bank feel less premium?", text: "Radical transparency is the emerging trust baseline. But premium positioning has historically relied on mystique and exclusivity. The provocation: can you be fully transparent and still feel aspirational?", evidence: "Transparency Imperative and Heritage Authority narratives \u2014 conflicting trust signals across segments." },
 ];
 
 /* ─── API Prompts ─── */
@@ -358,14 +342,10 @@ Return ONLY a JSON object (no markdown, no fences):
 Position each narrative on the y-axis (0=top, 1=bottom). Be precise.`;
 }
 
-function buildProvocationPrompt(tensions, narratives, meta, userPrompt, selectedType) {
+function buildProvocationPrompt(tensions, narratives, meta, userPrompt) {
   const ts = tensions.map(t => `T${t.rank}: ${t.forceA} \u2194 ${t.forceB} \u2014 ${t.summary}`).join("\n");
-  const typeInfo = selectedType ? PROV_TYPES.find(t => t.key === selectedType) : null;
-  const typeBlock = typeInfo ? `\nPROVOCATION TYPE: ${selectedType}\nTYPE DEFINITION: ${typeInfo.definition}\n` : "";
-  const typeField = typeInfo ? `"type": "${selectedType}",\n  ` : "";
-  const typeStyle = typeInfo ? ` in the style of ${selectedType}` : "";
   return `You are a discourse strategist for d+m. Generate a fieldwork provocation for ${meta.client}'s "${meta.territory}" territory.
-${typeBlock}
+
 TENSIONS:
 ${ts}
 
@@ -377,14 +357,13 @@ ${DISCOURSE_NARRATIVE_VOICE}
 Return ONLY a JSON object (no markdown, no fences):
 {
   "tensionId": <id of most relevant tension>,
-  ${typeField}"title": "A single-sentence question${typeStyle} that would provoke discussion in fieldwork",
+  "title": "A single-sentence question that would provoke discussion in fieldwork",
   "text": "2-3 sentences expanding the provocation",
   "evidence": "Brief citation grounding it in the analysis"
 }
 
-The title MUST be a single-sentence question. Start from corpus language.`;
+The title MUST be a single-sentence question. Not a two-part tension format.`;
 }
-
 
 function buildRefinePrompt(currentAxis, narratives, meta, userPrompt) {
   const ns = narratives.map(n => `- ${n.name} (salience:${n.salience}%): ${n.description}`).join("\n");
@@ -499,10 +478,6 @@ function DiscourseExplorer() {
   const [provPrompt, setProvPrompt] = useState("");
   const [provGenerating, setProvGenerating] = useState(false);
   const [provError, setProvError] = useState("");
-  const [provSelectedType, setProvSelectedType] = useState(null);
-  const [provExpandedType, setProvExpandedType] = useState(null);
-  const [provDeleteConfirmId, setProvDeleteConfirmId] = useState(null);
-  const [provEditingTypeId, setProvEditingTypeId] = useState(null);
 
   const [editingId, setEditingId] = useState(null);
   const [editingKey, setEditingKey] = useState(null);
@@ -512,8 +487,26 @@ function DiscourseExplorer() {
   const [showGaps, setShowGaps] = useState(false);
   const [expandedTension, setExpandedTension] = useState(null);
 
+  const [showExport, setShowExport] = useState(false);
+  const [exportTensions, setExportTensions] = useState(new Set());
+  const [exportProvocations, setExportProvocations] = useState(new Set());
+  const [exportNarrative, setExportNarrative] = useState(true);
+  const [exportSources, setExportSources] = useState(false);
+  const [exporting, setExporting] = useState(false);
+  const [pptxLoaded, setPptxLoaded] = useState(false);
+
   const mapRef = useRef(null);
   const fileRef = useRef(null);
+
+  // Load PptxGenJS from CDN
+  useEffect(() => {
+    if (typeof window.pptxgen !== "undefined" || typeof window.PptxGenJS !== "undefined") { setPptxLoaded(true); return; }
+    const s = document.createElement("script");
+    s.src = "https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundled.js";
+    s.onload = () => setPptxLoaded(true);
+    s.onerror = () => console.warn("PptxGenJS failed to load");
+    document.head.appendChild(s);
+  }, []);
 
   const currentAxis = useMemo(() => allAxes.find(a => a.id === selectedAxisId) || null, [allAxes, selectedAxisId]);
   const getQ = (x, y) => { if (x < 0.5 && y < 0.5) return "topLeft"; if (x >= 0.5 && y < 0.5) return "topRight"; if (x < 0.5 && y >= 0.5) return "bottomLeft"; return "bottomRight"; };
@@ -552,7 +545,6 @@ function DiscourseExplorer() {
     setPhase("onboarding"); setMeta(null); setAllNarratives([]); setAllAxes([]); setAllTensions([]);
     setAllProvocations([]); setAllSources([]); setIsDemo(false); setSelectedAxisId(null);
     setSelectedNarrative(null); setNarratives([]); setActiveView("map");
-    setProvSelectedType(null); setProvExpandedType(null); setProvDeleteConfirmId(null); setProvEditingTypeId(null);
     if (fileRef.current) fileRef.current.value = "";
   }, []);
 
@@ -585,13 +577,11 @@ function DiscourseExplorer() {
   }, [newAngle, generating, allNarratives, meta]);
 
   // Generate provocation
-  const generateProvocation = useCallback(async (typeOverride, focusOverride) => {
-    const prompt_text = focusOverride !== undefined ? focusOverride : provPrompt;
-    const type_to_use = typeOverride !== undefined ? typeOverride : provSelectedType;
-    if (!prompt_text.trim() || provGenerating) return;
+  const generateProvocation = useCallback(async () => {
+    if (!provPrompt.trim() || provGenerating) return;
     setProvGenerating(true); setProvError("");
     try {
-      const prompt = buildProvocationPrompt(allTensions, allNarratives, meta, prompt_text.trim(), type_to_use);
+      const prompt = buildProvocationPrompt(allTensions, allNarratives, meta, provPrompt.trim());
       const res = await fetch("https://api.anthropic.com/v1/messages", {
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ model: "claude-sonnet-4-20250514", max_tokens: 1000, messages: [{ role: "user", content: prompt }] }),
@@ -601,13 +591,226 @@ function DiscourseExplorer() {
       const prov = JSON.parse(text.replace(/```json|```/g, "").trim());
       prov.id = Math.max(0, ...allProvocations.map(p => p.id)) + 1;
       prov._generated = true;
-      if (!prov.type && type_to_use) prov.type = type_to_use;
       setAllProvocations(prev => [...prev, prov]);
       setProvPrompt("");
-      setProvExpandedType(null);
     } catch (err) { setProvError("Failed: " + err.message); }
     setProvGenerating(false);
-  }, [provPrompt, provSelectedType, provGenerating, allTensions, allNarratives, meta, allProvocations]);
+  }, [provPrompt, provGenerating, allTensions, allNarratives, meta, allProvocations]);
+
+  // Canvas map renderer for PPT export
+  const renderMapToCanvas = useCallback(() => {
+    const size = 900;
+    const canvas = document.createElement("canvas");
+    canvas.width = size; canvas.height = size;
+    const ctx = canvas.getContext("2d");
+    ctx.fillStyle = "#FFFFFF"; ctx.fillRect(0, 0, size, size);
+    ctx.strokeStyle = "#EEEEEE"; ctx.lineWidth = 1;
+    [0.25, 0.75].forEach(p => {
+      ctx.beginPath(); ctx.moveTo(p * size, 0); ctx.lineTo(p * size, size); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(0, p * size); ctx.lineTo(size, p * size); ctx.stroke();
+    });
+    ctx.strokeStyle = "#CCCCCC"; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(size / 2, 0); ctx.lineTo(size / 2, size); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(0, size / 2); ctx.lineTo(size, size / 2); ctx.stroke();
+    ctx.strokeStyle = "#DDDDDD"; ctx.lineWidth = 1; ctx.strokeRect(0.5, 0.5, size - 1, size - 1);
+    const ax = currentAxis;
+    const qColorMap = { topLeft: "#0A3A75", topRight: "#2A8C51", bottomLeft: "#999999", bottomRight: "#EB573F" };
+    const drawPill = (text, cx, cy) => {
+      ctx.font = 'bold 13px "Arial Black", Arial, sans-serif';
+      const tw = ctx.measureText(text).width;
+      const pw = tw + 24, ph = 22;
+      ctx.fillStyle = "rgba(255,255,255,0.92)";
+      ctx.beginPath(); ctx.roundRect(cx - pw / 2, cy - ph / 2, pw, ph, 4); ctx.fill();
+      ctx.strokeStyle = "#DDDDDD"; ctx.lineWidth = 1; ctx.stroke();
+      ctx.fillStyle = "#1A1A1A"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+      ctx.fillText(text, cx, cy);
+    };
+    if (ax && ax.topLabel) drawPill(ax.topLabel.toUpperCase(), size / 2, 22);
+    if (ax && ax.bottomLabel) drawPill(ax.bottomLabel.toUpperCase(), size / 2, size - 22);
+    const drawRotatedLabel = (text, x, y, angle) => {
+      ctx.save(); ctx.translate(x, y); ctx.rotate(angle);
+      ctx.font = "bold 11px Arial, sans-serif";
+      const tw = ctx.measureText(text).width + 16;
+      ctx.fillStyle = "rgba(247,247,247,0.95)"; ctx.fillRect(-tw / 2, -10, tw, 20);
+      ctx.strokeStyle = "#CCCCCC"; ctx.lineWidth = 1; ctx.strokeRect(-tw / 2, -10, tw, 20);
+      ctx.fillStyle = "#444444"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+      ctx.fillText(text, 0, 0); ctx.restore();
+    };
+    drawRotatedLabel("\u2190 DOMINANT", 22, size / 2, -Math.PI / 2);
+    drawRotatedLabel("EMERGENT \u2192", size - 22, size / 2, Math.PI / 2);
+    const quadrantPositions = [
+      { key: "topLeft", x: 44, y: 44, align: "left" }, { key: "topRight", x: size - 44, y: 44, align: "right" },
+      { key: "bottomLeft", x: 44, y: size - 44, align: "left" }, { key: "bottomRight", x: size - 44, y: size - 44, align: "right" },
+    ];
+    quadrantPositions.forEach(({ key, x, y, align }) => {
+      const qm = (ax && ax.quadrants && ax.quadrants[key]) || {};
+      const col = qColorMap[key];
+      ctx.font = 'bold 11px "Arial", sans-serif'; ctx.fillStyle = col + "CC"; ctx.textAlign = align; ctx.textBaseline = "top";
+      ctx.fillText((qm.label || "").toUpperCase(), x, y);
+      ctx.font = "9px Arial, sans-serif"; ctx.fillStyle = col + "88";
+      ctx.fillText(qm.tagline || "", x, y + 16);
+    });
+    narratives.forEach(n => {
+      if (n.y == null) return;
+      const cx = n.x * size, cy = n.y * size;
+      const r = Math.max(22, Math.min(46, n.salience * 0.5));
+      const col = qColorMap[getQ(n.x, n.y)];
+      ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2);
+      ctx.fillStyle = col + "28"; ctx.fill();
+      ctx.strokeStyle = col + "88"; ctx.lineWidth = 1.5; ctx.stroke();
+      ctx.font = "bold " + (r > 30 ? 11 : 9) + "px Arial, sans-serif";
+      ctx.fillStyle = "#333333"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+      ctx.fillText(n.salience + "%", cx, cy);
+      ctx.font = (r > 30 ? 10 : 9) + "px Arial, sans-serif";
+      ctx.fillStyle = "#1A1A1A"; ctx.textBaseline = "top";
+      ctx.fillText(n.name, cx, cy + r + 5);
+    });
+    return canvas.toDataURL("image/png", 0.95);
+  }, [narratives, currentAxis, getQ]);
+
+  // PPT generation
+  const generatePPT = useCallback(async () => {
+    const PptxCtor = window.PptxGenJS || window.pptxgen;
+    if (!PptxCtor || exporting) return;
+    setExporting(true);
+    try {
+      const pptx = new PptxCtor();
+      pptx.layout = "LAYOUT_WIDE";
+      pptx.title = (meta && meta.territory) || "Discourse Analysis";
+      pptx.company = "d+m";
+      const W = 13.33, H = 7.5;
+      const addFooter = (slide) => {
+        slide.addText("d+m \u00B7 Cultural Discourse Analysis \u00B7 Confidential", { x: 0.3, y: H - 0.22, w: W - 0.6, h: 0.18, color: "AAAAAA", fontFace: "Arial", fontSize: 8 });
+      };
+      const cover = pptx.addSlide();
+      cover.background = { color: "111111" };
+      cover.addShape(pptx.ShapeType.rect, { x: 0, y: H - 0.6, w: W, h: 0.6, fill: { color: "FFD900" } });
+      cover.addText("d+m", { x: 0.4, y: H - 0.58, w: 2, h: 0.5, color: "111111", fontFace: "Arial Black", fontSize: 18, bold: true });
+      cover.addText("Cultural Discourse Analysis", { x: 0.4, y: 0.5, w: 10, h: 0.35, color: "FFD900", fontFace: "Arial", fontSize: 11 });
+      cover.addText((meta && meta.territory) || "Discourse Analysis", { x: 0.4, y: 1.0, w: 11, h: 3.2, color: "FFFFFF", fontFace: "Arial Black", fontSize: 40, wrap: true, valign: "top" });
+      if (meta && meta.client) cover.addText(meta.client, { x: 0.4, y: 4.4, w: 7, h: 0.45, color: "999999", fontFace: "Arial", fontSize: 16 });
+      if (meta && meta.timeScope) cover.addText(meta.timeScope, { x: 0.4, y: 4.9, w: 7, h: 0.35, color: "555555", fontFace: "Courier New", fontSize: 12 });
+      const mapDataUrl = renderMapToCanvas();
+      const mapSlide = pptx.addSlide();
+      mapSlide.background = { color: "FFFFFF" };
+      mapSlide.addShape(pptx.ShapeType.rect, { x: 0, y: 0, w: W, h: 0.5, fill: { color: "111111" } });
+      mapSlide.addText((meta && meta.territory) || "", { x: 0.3, y: 0, w: 8, h: 0.5, color: "FFFFFF", fontFace: "Arial Black", fontSize: 13, valign: "middle" });
+      mapSlide.addText("Discourse Landscape Map", { x: 8, y: 0, w: 5, h: 0.5, color: "FFD900", fontFace: "Arial", fontSize: 10, valign: "middle", align: "right" });
+      mapSlide.addImage({ data: mapDataUrl, x: 0.25, y: 0.6, w: 6.4, h: 6.4 });
+      const quadHex = { topLeft: "0A3A75", topRight: "2A8C51", bottomLeft: "999999", bottomRight: "EB573F" };
+      ["topLeft", "topRight", "bottomLeft", "bottomRight"].forEach((qk, i) => {
+        const qm = qMeta(qk);
+        const bx = 6.9 + (i % 2) * 3.15, by = 0.7 + Math.floor(i / 2) * 2.0;
+        mapSlide.addShape(pptx.ShapeType.rect, { x: bx, y: by, w: 3.05, h: 1.75, fill: { color: quadHex[qk] + "12" }, line: { color: quadHex[qk], width: 1 } });
+        mapSlide.addShape(pptx.ShapeType.rect, { x: bx, y: by, w: 0.07, h: 1.75, fill: { color: quadHex[qk] } });
+        mapSlide.addText(qm.label || "", { x: bx + 0.15, y: by + 0.12, w: 2.8, h: 0.36, color: quadHex[qk], fontFace: "Arial Black", fontSize: 10 });
+        mapSlide.addText(qm.tagline || "", { x: bx + 0.15, y: by + 0.5, w: 2.8, h: 0.98, color: "555555", fontFace: "Arial", fontSize: 9, wrap: true });
+      });
+      addFooter(mapSlide);
+      for (const tid of exportTensions) {
+        const t = allTensions.find(t2 => t2.id === tid);
+        if (!t) continue;
+        const slide = pptx.addSlide();
+        slide.background = { color: "FFFFFF" };
+        slide.addShape(pptx.ShapeType.rect, { x: 0, y: 0, w: W, h: 0.5, fill: { color: "111111" } });
+        slide.addText("Tension " + String(t.rank).padStart(2, "0"), { x: 0.3, y: 0, w: 3, h: 0.5, color: "DB2B39", fontFace: "Courier New", fontSize: 12, valign: "middle" });
+        slide.addText((meta && meta.territory) || "", { x: 3, y: 0, w: 10, h: 0.5, color: "666666", fontFace: "Arial", fontSize: 9, valign: "middle", align: "right" });
+        slide.addText(t.forceA || "", { x: 0.35, y: 0.65, w: 4.8, h: 0.9, color: "111111", fontFace: "Arial Black", fontSize: 21, wrap: true });
+        slide.addText("\u2194", { x: 5.25, y: 0.65, w: 0.85, h: 0.9, color: "DB2B39", fontFace: "Arial Black", fontSize: 32, align: "center", valign: "middle" });
+        slide.addText(t.forceB || "", { x: 6.2, y: 0.65, w: 4.8, h: 0.9, color: "111111", fontFace: "Arial Black", fontSize: 21, wrap: true });
+        slide.addText(t.summary || "", { x: 0.35, y: 1.7, w: 12.6, h: 0.6, color: "555555", fontFace: "Arial", fontSize: 12, wrap: true });
+        if (t.significance) {
+          slide.addText("SIGNIFICANCE", { x: 0.35, y: 2.48, w: 5.8, h: 0.22, color: "999999", fontFace: "Arial", fontSize: 8, bold: true });
+          slide.addText(t.significance, { x: 0.35, y: 2.72, w: 5.8, h: 1.52, color: "555555", fontFace: "Arial", fontSize: 11, wrap: true });
+        }
+        if (t.strategicQuestion) {
+          slide.addShape(pptx.ShapeType.rect, { x: 7.0, y: 2.44, w: 5.95, h: 1.98, fill: { color: "FFF9DB" }, line: { color: "DB2B39", width: 2 } });
+          slide.addText("STRATEGIC QUESTION", { x: 7.2, y: 2.55, w: 5.5, h: 0.26, color: "DB2B39", fontFace: "Arial", fontSize: 9, bold: true });
+          slide.addText(t.strategicQuestion, { x: 7.2, y: 2.84, w: 5.5, h: 1.4, color: "333333", fontFace: "Arial", fontSize: 11, italic: true, wrap: true });
+        }
+        if (t.evidence && t.evidence.length > 0) {
+          const ev = t.evidence[0];
+          slide.addShape(pptx.ShapeType.rect, { x: 0.35, y: 4.6, w: 12.6, h: 0.78, fill: { color: "F7F7F7" }, line: { color: "DDDDDD", width: 1 } });
+          slide.addText("\u201C" + (ev.text || "") + "\u201D", { x: 0.55, y: 4.65, w: 12.1, h: 0.48, color: "333333", fontFace: "Arial", fontSize: 11, italic: true, wrap: true });
+          if (ev.source) slide.addText(ev.source, { x: 0.55, y: 5.2, w: 8, h: 0.18, color: "999999", fontFace: "Arial", fontSize: 9 });
+        }
+        addFooter(slide);
+      }
+      const selectedProvs = allProvocations.filter(p => exportProvocations.has(p.id));
+      if (selectedProvs.length > 0) {
+        const secSlide = pptx.addSlide();
+        secSlide.background = { color: "0A3A75" };
+        secSlide.addText("Provocations for Fieldwork", { x: 0.5, y: 2.5, w: W - 1, h: 1.1, color: "FFFFFF", fontFace: "Arial Black", fontSize: 36, align: "center", valign: "middle" });
+        secSlide.addText(selectedProvs.length + " selected for primary research", { x: 0.5, y: 3.7, w: W - 1, h: 0.45, color: "FFD900", fontFace: "Arial", fontSize: 14, align: "center" });
+        for (const p of selectedProvs) {
+          const slide = pptx.addSlide();
+          slide.background = { color: "FFFFFF" };
+          slide.addShape(pptx.ShapeType.rect, { x: 0, y: 0, w: W, h: 0.08, fill: { color: "FFD900" } });
+          const tension = allTensions.find(t => t.id === p.tensionId);
+          if (tension) slide.addText("T" + tension.rank + " \u00B7 " + tension.forceA + " \u2194 " + tension.forceB, { x: 0.35, y: 0.18, w: 12.6, h: 0.3, color: "999999", fontFace: "Courier New", fontSize: 9 });
+          slide.addText(p.title || "", { x: 0.35, y: 0.6, w: 12.6, h: 3.2, color: "111111", fontFace: "Arial Black", fontSize: 28, wrap: true, valign: "middle" });
+          if (p.text) slide.addText(p.text, { x: 0.35, y: 3.9, w: 12.6, h: 1.2, color: "555555", fontFace: "Arial", fontSize: 12, wrap: true });
+          if (p.evidence) {
+            slide.addShape(pptx.ShapeType.rect, { x: 0.35, y: 5.2, w: 12.6, h: 0.55, fill: { color: "F7F7F7" }, line: { color: "DDDDDD", width: 1 } });
+            slide.addText("Evidence: " + p.evidence, { x: 0.55, y: 5.25, w: 12.1, h: 0.45, color: "777777", fontFace: "Arial", fontSize: 10, italic: true, wrap: true });
+          }
+          addFooter(slide);
+        }
+      }
+      // Strategic Narrative slide
+      if (exportNarrative && currentAxis && currentAxis.narrative) {
+        const narr = currentAxis.narrative;
+        const nSlide = pptx.addSlide();
+        nSlide.background = { color: "FFFFFF" };
+        nSlide.addShape(pptx.ShapeType.rect, { x: 0, y: 0, w: W, h: 0.5, fill: { color: "111111" } });
+        nSlide.addText("Strategic Narrative", { x: 0.3, y: 0, w: 6, h: 0.5, color: "FFD900", fontFace: "Arial Black", fontSize: 13, valign: "middle" });
+        nSlide.addText("Lens: " + (currentAxis.name || ""), { x: 6.5, y: 0, w: 6.5, h: 0.5, color: "666666", fontFace: "Courier New", fontSize: 9, valign: "middle", align: "right" });
+        nSlide.addText(narr.headline || "", { x: 0.35, y: 0.65, w: 12.6, h: 1.6, color: "111111", fontFace: "Arial Black", fontSize: 26, wrap: true, valign: "top" });
+        const summaryParas = (narr.summary || "").split("\n\n").slice(0, 3);
+        summaryParas.forEach((para, i) => {
+          nSlide.addText(para, { x: 0.35, y: 2.45 + i * 1.2, w: 8.2, h: 1.1, color: "444444", fontFace: "Arial", fontSize: 11, wrap: true });
+        });
+        if (narr.keyTension) {
+          nSlide.addShape(pptx.ShapeType.rect, { x: 8.75, y: 0.65, w: 4.25, h: 3.9, fill: { color: "FFF9DB" }, line: { color: "FFD900", width: 2 } });
+          nSlide.addText("KEY TENSION", { x: 8.95, y: 0.78, w: 3.85, h: 0.26, color: "999999", fontFace: "Arial", fontSize: 8, bold: true });
+          nSlide.addText(narr.keyTension, { x: 8.95, y: 1.1, w: 3.85, h: 3.3, color: "333333", fontFace: "Arial", fontSize: 11, italic: true, wrap: true });
+        }
+        addFooter(nSlide);
+      }
+      // Sources slide
+      if (exportSources && allSources && allSources.length > 0) {
+        const srcSlide = pptx.addSlide();
+        srcSlide.background = { color: "FFFFFF" };
+        srcSlide.addShape(pptx.ShapeType.rect, { x: 0, y: 0, w: W, h: 0.5, fill: { color: "111111" } });
+        srcSlide.addText("Corpus Registry", { x: 0.3, y: 0, w: 6, h: 0.5, color: "FFFFFF", fontFace: "Arial Black", fontSize: 13, valign: "middle" });
+        srcSlide.addText(allSources.length + " sources", { x: 6.5, y: 0, w: 6.5, h: 0.5, color: "FFD900", fontFace: "Courier New", fontSize: 10, valign: "middle", align: "right" });
+        const typeColors = { News: "0A3A75", Opinion: "2A8C51", Academic: "EB573F", Social: "DB2B39", Cultural: "7B4FBF", Category: "E8830A" };
+        const grouped = {};
+        allSources.forEach(s => { if (!grouped[s.type]) grouped[s.type] = []; grouped[s.type].push(s); });
+        let col = 0, row = 0;
+        const colW = 6.0, startY = 0.65, rowH = 0.27;
+        Object.entries(grouped).forEach(([type, srcs]) => {
+          const x = 0.35 + col * (colW + 0.7), y = startY + row * rowH;
+          if (y > 6.8) return;
+          const hex = typeColors[type] || "555555";
+          srcSlide.addText(type.toUpperCase(), { x, y, w: 1.1, h: 0.24, color: hex, fontFace: "Arial", fontSize: 8, bold: true });
+          srcs.forEach((s, si) => {
+            const sy = y + (si + 0.8) * rowH;
+            if (sy > 6.8) return;
+            const label = ((s.title || "").slice(0, 52) + (s.title && s.title.length > 52 ? "\u2026" : "")) + (s.author ? "  \u2014  " + s.author : "");
+            srcSlide.addText(label, { x: x + 0.05, y: sy, w: colW - 0.1, h: rowH - 0.02, color: "444444", fontFace: "Arial", fontSize: 8 });
+          });
+          row += srcs.length + 1.2;
+          if (startY + row * rowH > 6.3) { row = 0; col++; }
+        });
+        addFooter(srcSlide);
+      }
+      const fname = ((meta && meta.client) || "discourse").replace(/\s+/g, "_") + "_landscape_export.pptx";
+      await pptx.writeFile({ fileName: fname });
+    } catch (err) { console.error("PPT export error:", err); }
+    setExporting(false);
+    setShowExport(false);
+  }, [exporting, meta, allTensions, allProvocations, exportTensions, exportProvocations, narratives, currentAxis, qMeta, renderMapToCanvas, getQ]);
 
   // Refine narrative
   const refineNarrative = useCallback(async () => {
@@ -708,14 +911,6 @@ function DiscourseExplorer() {
   const TensionPill = ({ rank }) => (
     <span style={{ fontFamily: "'Poppins'", fontSize: "9px", fontWeight: 700, color: DM.white, background: DM.red, padding: "2px 7px", borderRadius: "3px" }}>T{rank}</span>
   );
-  const TypeTag = ({ type, small = false }) => {
-    const colors = TYPE_COLORS[type] || { bg: DM.grey100, border: DM.grey200, text: DM.grey400 };
-    return (
-      <span style={{ display: "inline-block", padding: small ? "2px 7px" : "3px 9px", borderRadius: "3px", background: colors.bg, border: `1px solid ${colors.border}`, color: colors.text, fontFamily: "'Space Mono', monospace", fontSize: small ? "8px" : "9px", fontWeight: 500, letterSpacing: "0.04em", whiteSpace: "nowrap" }}>
-        {type.toUpperCase()}
-      </span>
-    );
-  };
   const EditableText = ({ value, onChange, style, multiline, onStartEdit, onStopEdit }) => {
     const [editing, setEditing] = useState(false);
     if (editing) {
@@ -887,6 +1082,8 @@ function DiscourseExplorer() {
               <button onClick={copyTabContent} style={{ padding: "4px 10px", border: `1px solid ${DM.grey200}`, borderRadius: "4px", background: "transparent", fontFamily: "'Space Mono'", fontSize: "8px", color: DM.grey400, cursor: "pointer" }}>Copy</button>
             )}
             <button onClick={resetAll} style={{ padding: "4px 10px", border: `1px solid ${DM.red}40`, borderRadius: "4px", background: "transparent", fontFamily: "'Space Mono'", fontSize: "8px", color: DM.red, cursor: "pointer" }}>Reset</button>
+            <div style={{ width: "1px", height: "16px", background: DM.grey100, margin: "0 4px" }} />
+            <button onClick={() => { setShowExport(true); setExportTensions(new Set(allTensions.slice(0, 3).map(t => t.id))); setExportProvocations(new Set()); setExportNarrative(true); setExportSources(false); }} style={{ padding: "4px 12px", border: "none", borderRadius: "4px", background: DM.black, fontFamily: "'Space Mono'", fontSize: "8px", color: DM.yellow, cursor: "pointer", letterSpacing: "0.05em" }}>Export PPT {"→"}</button>
           </div>
         </header>
 
@@ -911,10 +1108,10 @@ function DiscourseExplorer() {
                 <div style={{ position: "absolute", top: "50%", left: 0, right: 0, height: "1px", background: DM.grey200 }} />
                 {[0.25, 0.75].map(p => <div key={`v${p}`} style={{ position: "absolute", left: `${p * 100}%`, top: 0, bottom: 0, width: "1px", background: DM.grey100 }} />)}
                 {[0.25, 0.75].map(p => <div key={`h${p}`} style={{ position: "absolute", top: `${p * 100}%`, left: 0, right: 0, height: "1px", background: DM.grey100 }} />)}
-                <div style={{ position: "absolute", left: "10px", top: "50%", transform: "translateY(-50%) rotate(-90deg)", fontFamily: "'Anton'", fontSize: "10px", letterSpacing: "0.1em", color: DM.grey200 }}>Dominant</div>
-                <div style={{ position: "absolute", right: "10px", top: "50%", transform: "translateY(-50%) rotate(90deg)", fontFamily: "'Anton'", fontSize: "10px", letterSpacing: "0.1em", color: DM.grey200 }}>Emergent</div>
-                <div style={{ position: "absolute", top: "8px", left: "50%", transform: "translateX(-50%)", fontFamily: "'Anton'", fontSize: "10px", letterSpacing: "0.1em", color: DM.grey200 }}>{currentAxis.topLabel}</div>
-                <div style={{ position: "absolute", bottom: "8px", left: "50%", transform: "translateX(-50%)", fontFamily: "'Anton'", fontSize: "10px", letterSpacing: "0.1em", color: DM.grey200 }}>{currentAxis.bottomLabel}</div>
+                <div style={{ position: "absolute", left: "8px", top: "50%", transform: "translateY(-50%) rotate(-90deg)", fontFamily: "'Space Mono'", fontSize: "9px", letterSpacing: "0.1em", fontWeight: 700, color: DM.nearBlack, background: "rgba(247,247,247,0.92)", padding: "3px 8px", borderRadius: "3px", whiteSpace: "nowrap", pointerEvents: "none" }}>{"←"} DOMINANT</div>
+                <div style={{ position: "absolute", right: "8px", top: "50%", transform: "translateY(-50%) rotate(90deg)", fontFamily: "'Space Mono'", fontSize: "9px", letterSpacing: "0.1em", fontWeight: 700, color: DM.nearBlack, background: "rgba(247,247,247,0.92)", padding: "3px 8px", borderRadius: "3px", whiteSpace: "nowrap", pointerEvents: "none" }}>EMERGENT {"→"}</div>
+                <div style={{ position: "absolute", top: "10px", left: "50%", transform: "translateX(-50%)", fontFamily: "'Anton'", fontSize: "11px", letterSpacing: "0.1em", color: DM.nearBlack, background: "rgba(255,255,255,0.88)", padding: "3px 12px", borderRadius: "3px", whiteSpace: "nowrap", pointerEvents: "none" }}>{"↑"} {currentAxis.topLabel}</div>
+                <div style={{ position: "absolute", bottom: "10px", left: "50%", transform: "translateX(-50%)", fontFamily: "'Anton'", fontSize: "11px", letterSpacing: "0.1em", color: DM.nearBlack, background: "rgba(255,255,255,0.88)", padding: "3px 12px", borderRadius: "3px", whiteSpace: "nowrap", pointerEvents: "none" }}>{currentAxis.bottomLabel} {"↓"}</div>
                 {[{key:"topLeft",s:{left:"32px",top:"26px"}},{key:"topRight",s:{right:"14px",top:"26px",textAlign:"right"}},{key:"bottomLeft",s:{left:"32px",bottom:"26px"}},{key:"bottomRight",s:{right:"14px",bottom:"26px",textAlign:"right"}}].map(({key,s})=>(
                   <div key={`ql-${key}`} onClick={() => { setSelectedQuadrant(key); setSelectedNarrative(null); }} style={{ position:"absolute",...s,cursor:"pointer",padding:"4px 6px",borderRadius:"3px",transition:"all 0.15s",background:selectedQuadrant===key?`${Q_COLORS[key]}12`:"transparent" }}
                     onMouseEnter={e => e.currentTarget.style.background=`${Q_COLORS[key]}12`} onMouseLeave={e => { if(selectedQuadrant!==key) e.currentTarget.style.background="transparent"; }}>
@@ -1216,108 +1413,48 @@ function DiscourseExplorer() {
           {/* ─── PROVOCATIONS TAB ─── */}
           {activeView === "provocations" && (
             <div style={{ flex: 1, overflowY: "auto", padding: "40px" }}>
-              <div style={{ maxWidth: "820px", margin: "0 auto", animation: "fadeUp 0.4s ease-out" }}>
-                {/* Header */}
-                <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: "24px" }}>
-                  <div>
-                    <SectionLabel>Provocations for fieldwork</SectionLabel>
-                    <h2 style={{ fontFamily: "'Anton'", fontSize: "28px", lineHeight: 1.1 }}>{allProvocations.length} provocations</h2>
+              <div style={{ maxWidth: "780px", margin: "0 auto", animation: "fadeUp 0.4s ease-out" }}>
+                <SectionLabel>Provocations for fieldwork</SectionLabel>
+                <h2 style={{ fontFamily: "'Anton'", fontSize: "28px", lineHeight: 1.1, marginBottom: "6px" }}>{allProvocations.length} provocations</h2>
+                <p style={{ fontSize: "12px", fontWeight: 300, color: DM.grey600, lineHeight: 1.65, marginBottom: "12px" }}>Grounded in discourse evidence. Framed to provoke reaction from research participants. Drag to reorder, click to edit.</p>
+                {/* AI Generate bar */}
+                <div style={{ marginBottom: "24px", padding: "16px 20px", borderRadius: "4px", background: DM.nearBlack, border: `1px solid ${DM.yellow}30` }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "8px" }}>
+                    <div style={{ width: "6px", height: "6px", borderRadius: "50%", background: DM.yellow }} />
+                    <span style={{ fontFamily: "'Space Mono'", fontSize: "9px", color: DM.yellow }}>AI Generate</span>
+                    <span style={{ fontSize: "10px", fontWeight: 300, color: "rgba(255,255,255,0.4)" }}>{"\u2014"} describe what you want to provoke</span>
                   </div>
-                  <p style={{ fontSize: "11px", fontWeight: 300, color: DM.grey400 }}>Drag to reorder · click text to edit · click type tag to reassign</p>
+                  <div style={{ display: "flex", gap: "8px" }}>
+                    <input value={provPrompt} onChange={e => setProvPrompt(e.target.value)} onKeyDown={e => e.key === "Enter" && generateProvocation()}
+                      placeholder={'e.g. "A provocation about digital trust for Gen Z" \u2022 "Something about heritage vs. innovation"'}
+                      style={{ flex: 1, padding: "10px 14px", border: "1px solid rgba(255,255,255,0.15)", borderRadius: "4px", fontFamily: "'Poppins'", fontSize: "12px", color: DM.white, background: "rgba(255,255,255,0.06)", outline: "none" }} />
+                    <button onClick={generateProvocation} disabled={!provPrompt.trim() || provGenerating}
+                      style={{ padding: "10px 20px", border: "none", borderRadius: "4px", background: provPrompt.trim() && !provGenerating ? DM.yellow : "rgba(255,255,255,0.1)", color: provPrompt.trim() && !provGenerating ? DM.black : "rgba(255,255,255,0.3)", fontFamily: "'Poppins'", fontSize: "11px", fontWeight: 600, cursor: provPrompt.trim() && !provGenerating ? "pointer" : "default", whiteSpace: "nowrap" }}>
+                      {provGenerating ? "Generating..." : "Generate \u2192"}
+                    </button>
+                  </div>
+                  {provError && <p style={{ color: "#FF6B6B", fontSize: "10px", marginTop: "6px" }}>{provError}</p>}
                 </div>
-
-                {/* Type coverage + generate panel */}
-                <div style={{ background: DM.grey50, border: `1px solid ${DM.grey200}`, borderRadius: "6px", padding: "16px 20px", marginBottom: "24px" }}>
-                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "12px" }}>
-                    <span style={{ fontFamily: "'Space Mono'", fontSize: "9px", letterSpacing: "0.1em", color: DM.grey400 }}>TYPE COVERAGE — click a type to generate</span>
-                    {provError && <span style={{ fontSize: "9px", color: "#C82A27" }}>{provError}</span>}
-                  </div>
-                  <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
-                    {PROV_TYPES.map(t => {
-                      const count = allProvocations.filter(p => p.type === t.key).length;
-                      const isEmpty = count === 0;
-                      const isExpanded = provExpandedType === t.key;
-                      const colors = TYPE_COLORS[t.key];
-                      return (
-                        <div key={t.key} style={{ flex: "1 1 auto", minWidth: "140px" }}>
-                          <button onClick={() => setProvExpandedType(isExpanded ? null : t.key)} style={{ width: "100%", padding: "10px 12px", borderRadius: "4px", border: isExpanded ? `2px solid ${colors.border}` : isEmpty ? `1.5px dashed #BBBBBB` : `1.5px solid ${colors.border}`, background: isExpanded ? colors.bg : isEmpty ? DM.white : colors.bg + "88", cursor: "pointer", textAlign: "left", transition: "all 0.15s ease" }}>
-                            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "4px" }}>
-                              <span style={{ fontFamily: "'Space Mono'", fontSize: "8px", fontWeight: 700, letterSpacing: "0.06em", color: isEmpty ? DM.grey400 : colors.text }}>{t.short.toUpperCase()}</span>
-                              <span style={{ fontFamily: "'Space Mono'", fontSize: "14px", fontWeight: 700, color: isEmpty ? "#BBBBBB" : colors.border }}>{count}</span>
-                            </div>
-                            <div style={{ fontFamily: "'Poppins'", fontSize: "9px", color: isEmpty ? DM.grey400 : DM.grey600, lineHeight: 1.4, fontWeight: 300 }}>{t.description}</div>
-                          </button>
-                          {isExpanded && (
-                            <div style={{ marginTop: "4px", padding: "12px", background: colors.bg, border: `1.5px solid ${colors.border}`, borderRadius: "4px", animation: "fadeUp 0.15s ease-out" }}>
-                              <div style={{ fontFamily: "'Space Mono'", fontSize: "8px", color: colors.text, letterSpacing: "0.06em", marginBottom: "6px", fontWeight: 700 }}>FOCUS (OPTIONAL)</div>
-                              <input value={provPrompt} onChange={e => setProvPrompt(e.target.value)}
-                                onKeyDown={e => e.key === "Enter" && generateProvocation(t.key, provPrompt)}
-                                placeholder={t.placeholder}
-                                style={{ width: "100%", padding: "8px 10px", border: `1px solid ${colors.border}`, borderRadius: "3px", background: DM.white, fontFamily: "'Poppins'", fontSize: "11px", color: DM.black, outline: "none", boxSizing: "border-box", marginBottom: "8px" }} />
-                              <button onClick={() => generateProvocation(t.key, provPrompt)} disabled={provGenerating}
-                                style={{ width: "100%", padding: "8px", background: provGenerating ? DM.grey200 : colors.border, border: "none", borderRadius: "3px", color: provGenerating ? DM.grey400 : DM.white, fontFamily: "'Space Mono'", fontSize: "9px", fontWeight: 700, letterSpacing: "0.08em", cursor: provGenerating ? "not-allowed" : "pointer", transition: "all 0.15s" }}>
-                                {provGenerating ? "GENERATING..." : `GENERATE ${t.short.toUpperCase()}`}
-                              </button>
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                {/* Provocation cards */}
                 <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
                   {allProvocations.map((p, idx) => {
                     const tension = allTensions.find(t => t.id === p.tensionId);
-                    const isConfirmingDelete = provDeleteConfirmId === p.id;
-                    const isEditingType = provEditingTypeId === p.id;
                     return (
                       <div key={p.id} draggable onDragStart={() => handleDragStart("provocation", idx)}
                         onDragOver={e => handleDragOver(e, idx)} onDrop={() => handleDrop("provocation", idx)}
-                        style={{ padding: "18px 22px", borderRadius: "4px", border: dragOverIdx === idx && dragItemType === "provocation" ? `2px solid ${DM.yellow}` : `1px solid ${DM.grey200}`, background: DM.white, cursor: "grab", position: "relative" }}>
-                        {/* Card header row */}
-                        <div style={{ display: "flex", alignItems: "flex-start", gap: "8px", marginBottom: "10px", flexWrap: "wrap" }}>
+                        style={{ padding: "18px 22px", borderRadius: "4px", border: dragOverIdx === idx && dragItemType === "provocation" ? `2px solid ${DM.yellow}` : `1px solid ${DM.grey200}`, background: DM.white, cursor: "grab" }}>
+                        <div style={{ display: "flex", alignItems: "flex-start", gap: "12px", marginBottom: "8px" }}>
                           {tension && <TensionPill rank={tension.rank} />}
-                          {isEditingType ? (
-                            <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", alignItems: "center" }}>
-                              {PROV_TYPES.map(t => (
-                                <button key={t.key} onClick={() => { updateProvocation(p.id, "type", t.key); setProvEditingTypeId(null); }}
-                                  style={{ padding: "2px 8px", borderRadius: "3px", cursor: "pointer", background: TYPE_COLORS[t.key].bg, border: `1.5px solid ${TYPE_COLORS[t.key].border}`, color: TYPE_COLORS[t.key].text, fontFamily: "'Space Mono'", fontSize: "8px", fontWeight: 600, letterSpacing: "0.04em" }}>
-                                  {t.short.toUpperCase()}
-                                </button>
-                              ))}
-                              <button onClick={() => setProvEditingTypeId(null)} style={{ padding: "2px 8px", borderRadius: "3px", cursor: "pointer", background: "transparent", border: `1px solid ${DM.grey200}`, color: DM.grey400, fontFamily: "'Space Mono'", fontSize: "8px" }}>✕</button>
-                            </div>
-                          ) : p.type ? (
-                            <button onClick={() => setProvEditingTypeId(p.id)} style={{ background: "none", border: "none", padding: 0, cursor: "pointer" }} title="Change type">
-                              <TypeTag type={p.type} />
-                            </button>
-                          ) : (
-                            <button onClick={() => setProvEditingTypeId(p.id)} style={{ padding: "3px 9px", borderRadius: "3px", border: `1px dashed ${DM.grey200}`, background: "transparent", color: DM.grey400, fontFamily: "'Space Mono'", fontSize: "9px", cursor: "pointer" }}>+ type</button>
-                          )}
                           {p._generated && <span style={{ fontFamily: "'Space Mono'", fontSize: "8px", color: DM.yellow, background: "#FFF9DB", padding: "2px 6px", borderRadius: "3px" }}>AI</span>}
-                          <div style={{ marginLeft: "auto", flexShrink: 0 }}>
-                            {isConfirmingDelete ? (
-                              <div style={{ display: "flex", gap: "6px", alignItems: "center" }}>
-                                <span style={{ fontSize: "9px", color: DM.grey400 }}>Delete?</span>
-                                <button onClick={() => { setAllProvocations(prev => prev.filter(x => x.id !== p.id)); setProvDeleteConfirmId(null); }}
-                                  style={{ padding: "2px 8px", borderRadius: "3px", background: "#DB2B39", border: "none", color: DM.white, fontFamily: "'Space Mono'", fontSize: "8px", fontWeight: 700, cursor: "pointer" }}>YES</button>
-                                <button onClick={() => setProvDeleteConfirmId(null)}
-                                  style={{ padding: "2px 8px", borderRadius: "3px", background: DM.grey100, border: "none", color: DM.grey600, fontFamily: "'Space Mono'", fontSize: "8px", cursor: "pointer" }}>NO</button>
-                              </div>
-                            ) : (
-                              <button onClick={() => setProvDeleteConfirmId(p.id)} style={{ background: "none", border: "none", color: DM.grey200, fontSize: "13px", cursor: "pointer", padding: "0 4px", lineHeight: 1 }} title="Delete">✕</button>
-                            )}
+                          <div style={{ flex: 1 }}>
+                            <EditableText value={p.title} onChange={v => updateProvocation(p.id, "title", v)} style={{ fontSize: "14px", fontWeight: 600, lineHeight: 1.4, fontFamily: "'Poppins'" }} />
                           </div>
                         </div>
-                        <div style={{ marginBottom: "8px" }}>
-                          <EditableText value={p.title} onChange={v => updateProvocation(p.id, "title", v)} style={{ fontSize: "14px", fontWeight: 600, lineHeight: 1.4, fontFamily: "'Poppins'" }} />
-                        </div>
-                        <EditableText value={p.text} onChange={v => updateProvocation(p.id, "text", v)} multiline style={{ fontSize: "12px", fontWeight: 300, color: DM.grey600, lineHeight: 1.65, marginBottom: "8px", fontFamily: "'Poppins'" }} />
-                        <div style={{ display: "flex", alignItems: "flex-start", gap: "6px" }}>
-                          <span style={{ fontSize: "10px", fontWeight: 500, color: DM.grey400, flexShrink: 0 }}>Evidence:</span>
-                          <EditableText value={p.evidence} onChange={v => updateProvocation(p.id, "evidence", v)} style={{ fontSize: "10px", fontWeight: 300, color: DM.grey400, lineHeight: 1.5, fontFamily: "'Poppins'" }} />
+                        <div style={{ paddingLeft: "0" }}>
+                          <EditableText value={p.text} onChange={v => updateProvocation(p.id, "text", v)} multiline style={{ fontSize: "12px", fontWeight: 300, color: DM.grey600, lineHeight: 1.65, marginBottom: "8px", fontFamily: "'Poppins'" }} />
+                          <div style={{ display: "flex", alignItems: "flex-start", gap: "6px" }}>
+                            <span style={{ fontSize: "10px", fontWeight: 500, color: DM.grey400, flexShrink: 0 }}>Evidence:</span>
+                            <EditableText value={p.evidence} onChange={v => updateProvocation(p.id, "evidence", v)} style={{ fontSize: "10px", fontWeight: 300, color: DM.grey400, lineHeight: 1.5, fontFamily: "'Poppins'" }} />
+                          </div>
                         </div>
                       </div>
                     );
@@ -1327,19 +1464,6 @@ function DiscourseExplorer() {
                   const newId = Math.max(0, ...allProvocations.map(p => p.id)) + 1;
                   setAllProvocations(prev => [...prev, { id: newId, tensionId: allTensions[0]?.id || 1, title: "New provocation question?", text: "Description...", evidence: "Source..." }]);
                 }} style={{ marginTop: "16px", width: "100%", padding: "12px", border: `1.5px dashed ${DM.grey200}`, borderRadius: "4px", background: "transparent", color: DM.grey400, fontFamily: "'Poppins'", fontSize: "12px", cursor: "pointer" }}>+ Add provocation manually</button>
-
-                {/* Type guide */}
-                <div style={{ marginTop: "24px", padding: "14px 18px", background: DM.white, border: `1px solid ${DM.grey100}`, borderRadius: "4px" }}>
-                  <div style={{ fontFamily: "'Space Mono'", fontSize: "9px", letterSpacing: "0.08em", color: DM.grey400, marginBottom: "10px" }}>PROVOCATION TYPES — QUICK GUIDE</div>
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" }}>
-                    {PROV_TYPES.map(t => (
-                      <div key={t.key} style={{ display: "flex", gap: "8px", alignItems: "flex-start" }}>
-                        <TypeTag type={t.key} small />
-                        <span style={{ fontFamily: "'Poppins'", fontSize: "10px", color: DM.grey600, lineHeight: 1.4, fontWeight: 300 }}>{t.description}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
               </div>
             </div>
           )}
@@ -1484,6 +1608,155 @@ function DiscourseExplorer() {
           )}
 
         </div>
+
+        {/* ─── EXPORT DRAWER ─── */}
+        {showExport && (
+          <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.45)", zIndex: 100, display: "flex", justifyContent: "flex-end" }} onClick={e => e.target === e.currentTarget && setShowExport(false)}>
+            <div style={{ width: "420px", background: DM.white, display: "flex", flexDirection: "column", boxShadow: "-4px 0 24px rgba(0,0,0,0.12)", animation: "slideRight 0.25s ease-out" }}>
+              <div style={{ padding: "22px 24px 16px", borderBottom: `1px solid ${DM.grey100}`, flexShrink: 0 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                  <div>
+                    <h2 style={{ fontFamily: "'Anton'", fontSize: "22px", marginBottom: "3px" }}>Export as PowerPoint</h2>
+                    <p style={{ fontSize: "11px", fontWeight: 300, color: DM.grey400 }}>Select what to include in the deck</p>
+                  </div>
+                  <button onClick={() => setShowExport(false)} style={{ background: DM.grey100, border: "none", borderRadius: "4px", color: DM.grey400, padding: "6px 10px", cursor: "pointer", fontSize: "12px" }}>{"✕"}</button>
+                </div>
+              </div>
+              <div style={{ flex: 1, overflowY: "auto", padding: "20px 24px" }}>
+                {/* Always included */}
+                <div style={{ marginBottom: "22px" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "8px" }}>
+                    <div style={{ width: "6px", height: "6px", borderRadius: "2px", background: DM.yellow }} />
+                    <span style={{ fontFamily: "'Space Mono'", fontSize: "10px", fontWeight: 700, textTransform: "uppercase", color: DM.grey600 }}>Always included</span>
+                  </div>
+                  {[{ label: "Cover slide", detail: [(meta?.territory || ""), (meta?.client || "")].filter(Boolean).join(" · ") }, { label: "Landscape Map", detail: `${narratives.length} narratives · ${currentAxis?.name || ""} lens` }].map((item, i) => (
+                    <div key={i} style={{ display: "flex", alignItems: "center", gap: "10px", padding: "10px 12px", marginBottom: "4px", borderRadius: "4px", background: DM.grey50, border: `1px solid ${DM.grey100}` }}>
+                      <div style={{ width: "14px", height: "14px", borderRadius: "3px", background: DM.yellow, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                        <span style={{ fontSize: "9px", color: DM.black, fontWeight: 700 }}>{"✓"}</span>
+                      </div>
+                      <div>
+                        <div style={{ fontSize: "12px", fontWeight: 500 }}>{item.label}</div>
+                        <div style={{ fontSize: "10px", fontWeight: 300, color: DM.grey400 }}>{item.detail}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                {/* Tensions */}
+                {allTensions.length > 0 && (
+                  <div style={{ marginBottom: "22px" }}>
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "8px" }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                        <div style={{ width: "6px", height: "6px", borderRadius: "2px", background: DM.red }} />
+                        <span style={{ fontFamily: "'Space Mono'", fontSize: "10px", fontWeight: 700, textTransform: "uppercase", color: DM.grey600 }}>Tension cards</span>
+                      </div>
+                      <div style={{ display: "flex", gap: "8px" }}>
+                        <button onClick={() => setExportTensions(new Set(allTensions.map(t => t.id)))} style={{ fontSize: "9px", color: DM.grey400, border: "none", background: "none", cursor: "pointer", textDecoration: "underline" }}>all</button>
+                        <button onClick={() => setExportTensions(new Set())} style={{ fontSize: "9px", color: DM.grey400, border: "none", background: "none", cursor: "pointer", textDecoration: "underline" }}>none</button>
+                      </div>
+                    </div>
+                    {allTensions.map(t => (
+                      <div key={t.id} onClick={() => setExportTensions(prev => { const n = new Set(prev); n.has(t.id) ? n.delete(t.id) : n.add(t.id); return n; })}
+                        style={{ display: "flex", alignItems: "flex-start", gap: "10px", padding: "10px 12px", marginBottom: "4px", borderRadius: "4px", background: exportTensions.has(t.id) ? "#FFF9DB" : DM.grey50, border: `1px solid ${exportTensions.has(t.id) ? DM.yellow : DM.grey100}`, cursor: "pointer", transition: "all 0.15s" }}>
+                        <div style={{ width: "14px", height: "14px", borderRadius: "3px", marginTop: "1px", flexShrink: 0, background: exportTensions.has(t.id) ? DM.yellow : DM.white, border: `1.5px solid ${exportTensions.has(t.id) ? DM.yellow : DM.grey200}`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                          {exportTensions.has(t.id) && <span style={{ fontSize: "9px", color: DM.black, fontWeight: 700 }}>{"✓"}</span>}
+                        </div>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ fontSize: "11px", fontWeight: 600, color: DM.nearBlack }}>
+                            <span style={{ color: DM.red, fontFamily: "'Space Mono'", fontSize: "9px", marginRight: "6px" }}>{String(t.rank).padStart(2, "0")}</span>
+                            {t.forceA} {"↔"} {t.forceB}
+                          </div>
+                          <div style={{ fontSize: "10px", fontWeight: 300, color: DM.grey400, marginTop: "2px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{t.summary}</div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {/* Provocations */}
+                {allProvocations.length > 0 && (
+                  <div style={{ marginBottom: "8px" }}>
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "6px" }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                        <div style={{ width: "6px", height: "6px", borderRadius: "2px", background: "#0A3A75" }} />
+                        <span style={{ fontFamily: "'Space Mono'", fontSize: "10px", fontWeight: 700, textTransform: "uppercase", color: DM.grey600 }}>Provocations</span>
+                      </div>
+                      <div style={{ display: "flex", gap: "8px" }}>
+                        <button onClick={() => setExportProvocations(new Set(allProvocations.map(p => p.id)))} style={{ fontSize: "9px", color: DM.grey400, border: "none", background: "none", cursor: "pointer", textDecoration: "underline" }}>all</button>
+                        <button onClick={() => setExportProvocations(new Set())} style={{ fontSize: "9px", color: DM.grey400, border: "none", background: "none", cursor: "pointer", textDecoration: "underline" }}>none</button>
+                      </div>
+                    </div>
+                    <p style={{ fontSize: "10px", fontWeight: 300, color: DM.grey400, marginBottom: "8px" }}>Tick the ones you're taking into fieldwork.</p>
+                    {allProvocations.map(p => {
+                      const tension = allTensions.find(t => t.id === p.tensionId);
+                      return (
+                        <div key={p.id} onClick={() => setExportProvocations(prev => { const n = new Set(prev); n.has(p.id) ? n.delete(p.id) : n.add(p.id); return n; })}
+                          style={{ display: "flex", alignItems: "flex-start", gap: "10px", padding: "10px 12px", marginBottom: "4px", borderRadius: "4px", background: exportProvocations.has(p.id) ? "#EBF0FF" : DM.grey50, border: `1px solid ${exportProvocations.has(p.id) ? "#0A3A75" : DM.grey100}`, cursor: "pointer", transition: "all 0.15s" }}>
+                          <div style={{ width: "14px", height: "14px", borderRadius: "3px", marginTop: "1px", flexShrink: 0, background: exportProvocations.has(p.id) ? "#0A3A75" : DM.white, border: `1.5px solid ${exportProvocations.has(p.id) ? "#0A3A75" : DM.grey200}`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                            {exportProvocations.has(p.id) && <span style={{ fontSize: "9px", color: DM.white, fontWeight: 700 }}>{"✓"}</span>}
+                          </div>
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            {tension && <div style={{ fontSize: "8px", color: DM.red, fontFamily: "'Space Mono'", marginBottom: "2px" }}>T{tension.rank}</div>}
+                            <div style={{ fontSize: "11px", fontWeight: 500, color: DM.nearBlack, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{p.title}</div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+                {/* Strategic Narrative toggle */}
+                <div style={{ marginBottom: "22px" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "8px" }}>
+                    <div style={{ width: "6px", height: "6px", borderRadius: "2px", background: DM.yellow }} />
+                    <span style={{ fontFamily: "'Space Mono'", fontSize: "10px", fontWeight: 700, textTransform: "uppercase", color: DM.grey600 }}>Strategic Narrative</span>
+                  </div>
+                  <div onClick={() => setExportNarrative(v => !v)}
+                    style={{ display: "flex", alignItems: "center", gap: "10px", padding: "10px 12px", borderRadius: "4px", background: exportNarrative ? "#FFF9DB" : DM.grey50, border: `1px solid ${exportNarrative ? DM.yellow : DM.grey100}`, cursor: "pointer", transition: "all 0.15s" }}>
+                    <div style={{ width: "14px", height: "14px", borderRadius: "3px", flexShrink: 0, background: exportNarrative ? DM.yellow : DM.white, border: `1.5px solid ${exportNarrative ? DM.yellow : DM.grey200}`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                      {exportNarrative && <span style={{ fontSize: "9px", color: DM.black, fontWeight: 700 }}>{"\u2713"}</span>}
+                    </div>
+                    <div>
+                      <div style={{ fontSize: "12px", fontWeight: 500 }}>Strategic Narrative</div>
+                      <div style={{ fontSize: "10px", fontWeight: 300, color: DM.grey400 }}>Headline, summary paragraphs, key tension{currentAxis ? ` \u00B7 ${currentAxis.name} lens` : ""}</div>
+                    </div>
+                  </div>
+                </div>
+                {/* Sources toggle */}
+                {allSources.length > 0 && (
+                  <div style={{ marginBottom: "8px" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "8px" }}>
+                      <div style={{ width: "6px", height: "6px", borderRadius: "2px", background: DM.grey400 }} />
+                      <span style={{ fontFamily: "'Space Mono'", fontSize: "10px", fontWeight: 700, textTransform: "uppercase", color: DM.grey600 }}>Sources</span>
+                    </div>
+                    <div onClick={() => setExportSources(v => !v)}
+                      style={{ display: "flex", alignItems: "center", gap: "10px", padding: "10px 12px", borderRadius: "4px", background: exportSources ? "#F0F4FF" : DM.grey50, border: `1px solid ${exportSources ? "#0A3A75" : DM.grey100}`, cursor: "pointer", transition: "all 0.15s" }}>
+                      <div style={{ width: "14px", height: "14px", borderRadius: "3px", flexShrink: 0, background: exportSources ? "#0A3A75" : DM.white, border: `1.5px solid ${exportSources ? "#0A3A75" : DM.grey200}`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                        {exportSources && <span style={{ fontSize: "9px", color: DM.white, fontWeight: 700 }}>{"\u2713"}</span>}
+                      </div>
+                      <div>
+                        <div style={{ fontSize: "12px", fontWeight: 500 }}>Corpus Registry</div>
+                        <div style={{ fontSize: "10px", fontWeight: 300, color: DM.grey400 }}>{allSources.length} sources grouped by type</div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+              {/* Footer */}
+              <div style={{ padding: "16px 24px", borderTop: `1px solid ${DM.grey100}`, flexShrink: 0, background: DM.grey50 }}>
+                <div style={{ fontSize: "10px", fontWeight: 300, color: DM.grey400, marginBottom: "10px" }}>
+                  {2 + exportTensions.size + (exportProvocations.size > 0 ? exportProvocations.size + 1 : 0) + (exportNarrative ? 1 : 0) + (exportSources ? 1 : 0)} slides total
+                  {exportTensions.size > 0 && ` · ${exportTensions.size} tension${exportTensions.size > 1 ? "s" : ""}`}
+                  {exportProvocations.size > 0 && ` · ${exportProvocations.size} provocation${exportProvocations.size > 1 ? "s" : ""}`}
+                  {exportNarrative && " · narrative"}
+                  {exportSources && " · sources"}
+                </div>
+                {!pptxLoaded && <p style={{ fontSize: "10px", color: DM.grey400, marginBottom: "8px" }}>Loading PowerPoint engine...</p>}
+                <button onClick={generatePPT} disabled={!pptxLoaded || exporting}
+                  style={{ width: "100%", padding: "13px", border: "none", borderRadius: "4px", background: pptxLoaded && !exporting ? DM.black : DM.grey200, color: pptxLoaded && !exporting ? DM.white : DM.grey400, fontFamily: "'Anton'", fontSize: "14px", cursor: pptxLoaded && !exporting ? "pointer" : "default", letterSpacing: "0.06em" }}>
+                  {exporting ? "Generating..." : "Generate PowerPoint →"}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </>)}
     </div>
   );
