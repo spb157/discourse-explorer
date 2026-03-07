@@ -511,7 +511,8 @@ function _txt(x, y, w, h, runs, opts = {}) {
   const pXml = paras.map(para =>
     `<a:p><a:pPr algn="${algn}"/>${para.map(r => {
       const { t = "", color = "111111", bold = false, italic = false, sz = 18, font = "Arial" } = r;
-      return `<a:r><a:rPr lang="en-GB" sz="${Math.round(sz*100)}" b="${bold?1:0}" i="${italic?1:0}" dirty="0"><a:solidFill><a:srgbClr val="${_hx(color)}"/></a:solidFill><a:latin typeface="${font}"/></a:rPr><a:t>${String(t).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/\r/g,"")}</a:t></a:r>`;
+      const _xmlSafe = (s) => String(s).replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\uFFFE\uFFFF]/g,"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/\r/g,"");
+      return `<a:r><a:rPr lang="en-GB" sz="${Math.round(sz*100)}" b="${bold?1:0}" i="${italic?1:0}" dirty="0"><a:solidFill><a:srgbClr val="${_hx(color)}"/></a:solidFill><a:latin typeface="${font}"/></a:rPr><a:t>${_xmlSafe(t)}</a:t></a:r>`;
     }).join("")}</a:p>`
   ).join("");
   return `<p:sp><p:nvSpPr><p:cNvPr id="${id}" name="t${id}"/><p:cNvSpPr txBox="1"><a:spLocks noGrp="1"/></p:cNvSpPr><p:nvPr/></p:nvSpPr><p:spPr><a:xfrm><a:off x="${_emu(x)}" y="${_emu(y)}"/><a:ext cx="${_emu(w)}" cy="${_emu(h)}"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom>${fXml}${lXml}</p:spPr><p:txBody><a:bodyPr wrap="square" anchor="${anch}"><a:normAutofit/></a:bodyPr><a:lstStyle/>${pXml}</p:txBody></p:sp>`;
@@ -918,7 +919,7 @@ function DiscourseExplorer() {
       document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
     } catch (err) { console.error("PPT export error:", err); alert("Export failed: " + err.message); }
     setExporting(false); setShowExport(false);
-  }, [exporting, meta, allTensions, allProvocations, exportTensions, exportProvocations, allSources, narratives, currentAxis, qMeta, renderMapToCanvas]);
+  }, [exporting, meta, allTensions, allProvocations, exportTensions, exportProvocations, exportNarrative, exportSources, allSources, narratives, currentAxis, qMeta, renderMapToCanvas]);
 
   const generateHTML = useCallback(() => {
     if (!meta) return;
