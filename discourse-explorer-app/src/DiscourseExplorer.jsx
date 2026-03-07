@@ -427,6 +427,8 @@ Related: ${relatedNames || "none"} | In tensions: ${tensionsInvolved || "none"}
 Key quotes:
 ${quotes}
 
+${DISCOURSE_NARRATIVE_VOICE}
+
 Write 4 paragraphs of genuine analytical interpretation — not a summary of the data above. Cover: what this narrative reveals about how people construct meaning; what the metaphor and emotional register tell us about the psychological work being done; where this narrative is heading; and the specific strategic implication for the client. British English. Flowing prose, no headers or bullets.`;
 }
 
@@ -454,6 +456,8 @@ Narratives (${quadrantNarratives.length}):
 ${narrativeSummaries}
 
 Tensions through this quadrant: ${relevantTensions || "none"}
+
+${DISCOURSE_NARRATIVE_VOICE}
 
 Write 3-4 paragraphs: what shared cultural logic holds these narratives together; what the cluster reveals that no single narrative does; what the "${currentAxis?.name || "lens"}" illuminates about them as a group; and the specific strategic implication. British English. Flowing prose, no headers or bullets.`;
 }
@@ -681,6 +685,7 @@ function DiscourseExplorer() {
   const [dragOverIdx, setDragOverIdx] = useState(null);
   const [showGaps, setShowGaps] = useState(false);
   const [expandedTension, setExpandedTension] = useState(null);
+  const [expandedPassageId, setExpandedPassageId] = useState(null); // source id whose passage is open in narrative panel
 
   // Deep-dive: cache by narrative id, quadrant synthesis: cache by quadrantKey+axisId
   const [deepDiveCache, setDeepDiveCache] = useState({});
@@ -1589,15 +1594,56 @@ function DiscourseExplorer() {
                       <div style={{ marginBottom: "20px" }}>
                         <SectionLabel>Verbatim quotes</SectionLabel>
                         <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-                          {n.quotes.map((q, i) => (
-                            <div key={i} style={{ padding: "12px 14px", background: DM.white, borderRadius: "4px", borderLeft: `2px solid ${DM.grey200}` }}>
-                              <p style={{ fontSize: "12px", fontStyle: "italic", color: DM.nearBlack, lineHeight: 1.6 }}>{"\u201C"}{q.text}{"\u201D"}</p>
-                              <div style={{ display: "flex", alignItems: "center", gap: "6px", marginTop: "6px" }}>
-                                <span style={{ fontSize: "10px", fontWeight: 500, color: DM.grey400 }}>{q.source}</span>
-                                <MarketPill market={q.market} />
+                          {n.quotes.map((q, i) => {
+                            // Try to match this quote to a source object by id or by title fragment
+                            const matchedSource = allSources.find(s =>
+                              s.id === q.source ||
+                              (typeof q.source === "string" && q.source.toLowerCase().includes(s.title?.toLowerCase()?.slice(0, 20))) ||
+                              (typeof q.source === "string" && s.title?.toLowerCase()?.includes(q.source?.toLowerCase()?.slice(0, 20)))
+                            );
+                            const hasPassage = matchedSource?.passage;
+                            const passageKey = `${n.id}-${i}`;
+                            const isOpen = expandedPassageId === passageKey;
+                            return (
+                              <div key={i} style={{ background: DM.white, borderRadius: "4px", borderLeft: `2px solid ${isOpen ? DM.yellow : DM.grey200}`, transition: "border-color 0.15s", overflow: "hidden" }}>
+                                <div style={{ padding: "12px 14px" }}>
+                                  <p style={{ fontSize: "12px", fontStyle: "italic", color: DM.nearBlack, lineHeight: 1.6 }}>{"\u201C"}{q.text}{"\u201D"}</p>
+                                  <div style={{ display: "flex", alignItems: "center", gap: "6px", marginTop: "6px" }}>
+                                    <span style={{ fontSize: "10px", fontWeight: 500, color: DM.grey400 }}>{q.source}</span>
+                                    <MarketPill market={q.market} />
+                                    {hasPassage && (
+                                      <button
+                                        onClick={() => setExpandedPassageId(isOpen ? null : passageKey)}
+                                        style={{ marginLeft: "auto", fontSize: "9px", fontWeight: 600, color: isOpen ? DM.nearBlack : DM.grey400, background: isOpen ? DM.yellow : DM.grey100, border: "none", borderRadius: "3px", padding: "3px 8px", cursor: "pointer", transition: "all 0.15s", whiteSpace: "nowrap" }}
+                                      >
+                                        {isOpen ? "↑ Close" : "Read source →"}
+                                      </button>
+                                    )}
+                                  </div>
+                                </div>
+                                {isOpen && hasPassage && (
+                                  <div style={{ borderTop: `1px solid ${DM.grey100}`, padding: "14px 14px 16px", background: "#FFFDF0" }}>
+                                    <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "10px" }}>
+                                      <div style={{ width: "4px", height: "4px", borderRadius: "50%", background: DM.yellow, flexShrink: 0 }} />
+                                      <span style={{ fontFamily: "'Space Mono'", fontSize: "8px", color: DM.grey600, textTransform: "uppercase", letterSpacing: "0.05em" }}>Source passage</span>
+                                      <span style={{ fontSize: "9px", color: DM.grey400, marginLeft: "auto" }}>{matchedSource.type} · {matchedSource.market}</span>
+                                    </div>
+                                    <p style={{ fontSize: "11px", fontWeight: 300, color: DM.nearBlack, lineHeight: 1.75, margin: "0 0 10px" }}>{matchedSource.passage}</p>
+                                    {matchedSource.passageNote && (
+                                      <p style={{ fontSize: "10px", fontWeight: 400, color: DM.grey400, lineHeight: 1.5, fontStyle: "italic", margin: "0 0 10px", borderTop: `1px solid ${DM.grey100}`, paddingTop: "8px" }}>{matchedSource.passageNote}</p>
+                                    )}
+                                    <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                                      <span style={{ fontSize: "10px", fontWeight: 500, color: DM.grey600 }}>{matchedSource.title}</span>
+                                      <span style={{ fontSize: "9px", color: DM.grey400 }}>{matchedSource.author} · {matchedSource.date}</span>
+                                      {matchedSource.url && (
+                                        <a href={matchedSource.url} target="_blank" rel="noopener noreferrer" style={{ marginLeft: "auto", fontSize: "9px", color: DM.grey400, textDecoration: "underline" }}>View original ↗</a>
+                                      )}
+                                    </div>
+                                  </div>
+                                )}
                               </div>
-                            </div>
-                          ))}
+                            );
+                          })}
                         </div>
                       </div>
                     )}
@@ -2117,21 +2163,52 @@ function DiscourseExplorer() {
                   const grouped = {};
                   allSources.forEach(s => { if (!grouped[s.type]) grouped[s.type] = []; grouped[s.type].push(s); });
                   return Object.entries(grouped).map(([type, sources]) => (
-                    <div key={type} style={{ marginBottom: "20px" }}>
+                    <div key={type} style={{ marginBottom: "28px" }}>
                       <div style={{ display: "flex", alignItems: "center", gap: "8px", paddingBottom: "8px", borderBottom: `1px solid ${DM.grey100}`, marginBottom: "8px" }}>
                         <span style={{ fontFamily: "'Space Mono'", fontSize: "10px", fontWeight: 700, textTransform: "uppercase", color: DM.grey600 }}>{type}</span>
                         <span style={{ fontFamily: "'Space Mono'", fontSize: "9px", color: DM.grey400 }}>({sources.length})</span>
                       </div>
-                      <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
-                        {sources.map(s => (
-                          <div key={s.id} style={{ display: "flex", alignItems: "center", gap: "10px", padding: "8px 12px", borderRadius: "4px", background: DM.grey50 }}>
-                            <div style={{ flex: 1, minWidth: 0 }}>
-                              <span style={{ fontSize: "11px", fontWeight: 500, color: DM.nearBlack }}>{s.title}</span>
-                              <div style={{ fontSize: "9px", color: DM.grey400, marginTop: "2px" }}>{s.author} {"\u00B7"} {s.date}</div>
+                      <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+                        {sources.map(s => {
+                          const isOpen = expandedPassageId === `src-${s.id}`;
+                          return (
+                            <div key={s.id} style={{ borderRadius: "4px", border: `1px solid ${isOpen ? DM.yellow : DM.grey100}`, background: DM.white, overflow: "hidden", transition: "border-color 0.15s" }}>
+                              {/* Source header row */}
+                              <div style={{ display: "flex", alignItems: "center", gap: "10px", padding: "10px 14px" }}>
+                                <div style={{ flex: 1, minWidth: 0 }}>
+                                  <span style={{ fontSize: "11px", fontWeight: 600, color: DM.nearBlack }}>{s.title}</span>
+                                  <div style={{ fontSize: "9px", color: DM.grey400, marginTop: "2px" }}>{s.author} · {s.date}</div>
+                                </div>
+                                <MarketPill market={s.market} />
+                                {s.passage ? (
+                                  <button
+                                    onClick={() => setExpandedPassageId(isOpen ? null : `src-${s.id}`)}
+                                    style={{ fontSize: "9px", fontWeight: 600, color: isOpen ? DM.nearBlack : DM.grey400, background: isOpen ? DM.yellow : DM.grey100, border: "none", borderRadius: "3px", padding: "4px 10px", cursor: "pointer", whiteSpace: "nowrap", transition: "all 0.15s", flexShrink: 0 }}
+                                  >
+                                    {isOpen ? "↑ Close" : "Read passage →"}
+                                  </button>
+                                ) : (
+                                  <span style={{ fontSize: "9px", color: DM.grey200, flexShrink: 0 }}>No passage</span>
+                                )}
+                              </div>
+                              {/* Passage expand */}
+                              {isOpen && s.passage && (
+                                <div style={{ borderTop: `1px solid ${DM.grey100}`, padding: "16px 14px 18px", background: "#FFFDF0" }}>
+                                  <p style={{ fontSize: "12px", fontWeight: 300, color: DM.nearBlack, lineHeight: 1.8, margin: "0 0 12px" }}>{s.passage}</p>
+                                  {s.passageNote && (
+                                    <p style={{ fontSize: "10px", fontWeight: 400, color: DM.grey400, lineHeight: 1.5, fontStyle: "italic", margin: "0 0 12px", borderTop: `1px solid ${DM.grey100}`, paddingTop: "10px" }}>{s.passageNote}</p>
+                                  )}
+                                  <div style={{ display: "flex", alignItems: "center", gap: "8px", borderTop: `1px solid ${DM.grey100}`, paddingTop: "10px" }}>
+                                    <span style={{ fontFamily: "'Space Mono'", fontSize: "8px", color: DM.grey400, textTransform: "uppercase" }}>{s.type} · {s.market}</span>
+                                    {s.url && (
+                                      <a href={s.url} target="_blank" rel="noopener noreferrer" style={{ marginLeft: "auto", fontSize: "9px", color: DM.grey400, textDecoration: "underline" }}>View original ↗</a>
+                                    )}
+                                  </div>
+                                </div>
+                              )}
                             </div>
-                            <MarketPill market={s.market} />
-                          </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     </div>
                   ));
