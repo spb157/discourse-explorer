@@ -940,15 +940,20 @@ function DiscourseExplorer() {
       // Load PptxGenJS from CDN if not already present
       if (!window.PptxGenJS) {
         await new Promise((resolve, reject) => {
-          const s = document.createElement("script");
-          s.src = "https://cdnjs.cloudflare.com/ajax/libs/pptxgenjs/3.12.0/pptxgen.bundle.js";
-          s.onload = resolve;
-          s.onerror = () => reject(new Error("Failed to load PptxGenJS"));
-          document.head.appendChild(s);
+          const tryLoad = (url) => new Promise((res, rej) => {
+            const s = document.createElement("script");
+            s.src = url; s.onload = res;
+            s.onerror = () => rej(new Error("CDN failed: " + url));
+            document.head.appendChild(s);
+          });
+          tryLoad("https://unpkg.com/pptxgenjs@3.12.0/dist/pptxgen.bundle.js")
+            .then(resolve)
+            .catch(() => tryLoad("https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js")
+              .then(resolve).catch(reject));
         });
       }
       const PptxGen = window.PptxGenJS;
-      if (!PptxGen) throw new Error("PptxGenJS unavailable");
+      if (!PptxGen) throw new Error("PptxGenJS unavailable after CDN load");
       const pres = new PptxGen();
       pres.layout = "LAYOUT_16x9";
       const W = 13.33, H = 7.5;
