@@ -1602,9 +1602,9 @@ function DiscourseExplorer() {
                         <SectionLabel>Verbatim quotes</SectionLabel>
                         <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
                           {n.quotes.map((q, i) => {
-                            // Try to match this quote to a source object by id or by title fragment
+                            // Try to match this quote to a source object by id (string or number) or by title fragment
                             const matchedSource = allSources.find(s =>
-                              s.id === q.source ||
+                              String(s.id) === String(q.source) ||
                               (typeof q.source === "string" && q.source.toLowerCase().includes(s.title?.toLowerCase()?.slice(0, 20))) ||
                               (typeof q.source === "string" && s.title?.toLowerCase()?.includes(q.source?.toLowerCase()?.slice(0, 20)))
                             );
