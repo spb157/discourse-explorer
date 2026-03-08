@@ -1602,52 +1602,46 @@ function DiscourseExplorer() {
                         <SectionLabel>Verbatim quotes</SectionLabel>
                         <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
                           {n.quotes.map((q, i) => {
-                            // Try to match this quote to a source object by id (string or number) or by title fragment
+                            // Try to match this quote to a source object by id or by title fragment
                             const matchedSource = allSources.find(s =>
-                              String(s.id) === String(q.source) ||
+                              s.id === q.source ||
                               (typeof q.source === "string" && q.source.toLowerCase().includes(s.title?.toLowerCase()?.slice(0, 20))) ||
                               (typeof q.source === "string" && s.title?.toLowerCase()?.includes(q.source?.toLowerCase()?.slice(0, 20)))
                             );
                             const hasPassage = matchedSource?.passage;
                             const passageKey = `${n.id}-${i}`;
                             const isOpen = expandedPassageId === passageKey;
-                            const sourceLabel = matchedSource ? matchedSource.title : (typeof q.source === "string" ? q.source : resolveSource(q.source));
-                            const canExpand = !!matchedSource;
                             return (
                               <div key={i} style={{ background: DM.white, borderRadius: "4px", borderLeft: `2px solid ${isOpen ? DM.yellow : DM.grey200}`, transition: "border-color 0.15s", overflow: "hidden" }}>
                                 <div style={{ padding: "12px 14px" }}>
                                   <p style={{ fontSize: "12px", fontStyle: "italic", color: DM.nearBlack, lineHeight: 1.6 }}>{"\u201C"}{q.text}{"\u201D"}</p>
                                   <div style={{ display: "flex", alignItems: "center", gap: "6px", marginTop: "6px" }}>
-                                    <span style={{ fontSize: "10px", fontWeight: 500, color: DM.grey400 }}>{sourceLabel}</span>
+                                    <span style={{ fontSize: "10px", fontWeight: 500, color: DM.grey400 }}>{q.source}</span>
                                     <MarketPill market={q.market} />
-                                    {canExpand && (
+                                    {hasPassage && (
                                       <button
                                         onClick={() => setExpandedPassageId(isOpen ? null : passageKey)}
                                         style={{ marginLeft: "auto", fontSize: "9px", fontWeight: 600, color: isOpen ? DM.nearBlack : DM.grey400, background: isOpen ? DM.yellow : DM.grey100, border: "none", borderRadius: "3px", padding: "3px 8px", cursor: "pointer", transition: "all 0.15s", whiteSpace: "nowrap" }}
                                       >
-                                        {isOpen ? "↑ Close" : (hasPassage ? "Read source →" : "Source info →")}
+                                        {isOpen ? "↑ Close" : "Read source →"}
                                       </button>
                                     )}
                                   </div>
                                 </div>
-                                {isOpen && canExpand && (
+                                {isOpen && hasPassage && (
                                   <div style={{ borderTop: `1px solid ${DM.grey100}`, padding: "14px 14px 16px", background: "#FFFDF0" }}>
                                     <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "10px" }}>
                                       <div style={{ width: "4px", height: "4px", borderRadius: "50%", background: DM.yellow, flexShrink: 0 }} />
-                                      <span style={{ fontFamily: "'Space Mono'", fontSize: "8px", color: DM.grey600, textTransform: "uppercase", letterSpacing: "0.05em" }}>{hasPassage ? "Source passage" : "Source"}</span>
-                                      <span style={{ fontSize: "9px", color: DM.grey400, marginLeft: "auto" }}>{matchedSource.type}{matchedSource.market ? " · " + matchedSource.market : ""}</span>
+                                      <span style={{ fontFamily: "'Space Mono'", fontSize: "8px", color: DM.grey600, textTransform: "uppercase", letterSpacing: "0.05em" }}>Source passage</span>
+                                      <span style={{ fontSize: "9px", color: DM.grey400, marginLeft: "auto" }}>{matchedSource.type} · {matchedSource.market}</span>
                                     </div>
-                                    {hasPassage && (
-                                      <p style={{ fontSize: "11px", fontWeight: 300, color: DM.nearBlack, lineHeight: 1.75, margin: "0 0 10px" }}>{matchedSource.passage}</p>
-                                    )}
+                                    <p style={{ fontSize: "11px", fontWeight: 300, color: DM.nearBlack, lineHeight: 1.75, margin: "0 0 10px" }}>{matchedSource.passage}</p>
                                     {matchedSource.passageNote && (
                                       <p style={{ fontSize: "10px", fontWeight: 400, color: DM.grey400, lineHeight: 1.5, fontStyle: "italic", margin: "0 0 10px", borderTop: `1px solid ${DM.grey100}`, paddingTop: "8px" }}>{matchedSource.passageNote}</p>
                                     )}
-                                    <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
+                                    <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                                       <span style={{ fontSize: "10px", fontWeight: 500, color: DM.grey600 }}>{matchedSource.title}</span>
-                                      {(matchedSource.author || matchedSource.date) && (
-                                        <span style={{ fontSize: "9px", color: DM.grey400 }}>{[matchedSource.author, matchedSource.date].filter(Boolean).join(" · ")}</span>
-                                      )}
+                                      <span style={{ fontSize: "9px", color: DM.grey400 }}>{matchedSource.author} · {matchedSource.date}</span>
                                       {matchedSource.url && (
                                         <a href={matchedSource.url} target="_blank" rel="noopener noreferrer" style={{ marginLeft: "auto", fontSize: "9px", color: DM.grey400, textDecoration: "underline" }}>View original ↗</a>
                                       )}
@@ -2193,6 +2187,12 @@ function DiscourseExplorer() {
                                   <div style={{ fontSize: "9px", color: DM.grey400, marginTop: "2px" }}>{s.author} · {s.date}</div>
                                 </div>
                                 <MarketPill market={s.market} />
+                                {s.url && (
+                                  <a href={s.url} target="_blank" rel="noopener noreferrer" style={{ fontSize: "9px", fontWeight: 600, color: DM.grey400, background: DM.grey100, borderRadius: "3px", padding: "4px 10px", textDecoration: "none", whiteSpace: "nowrap", flexShrink: 0, transition: "all 0.15s" }}
+                                    onMouseEnter={e => { e.currentTarget.style.background = DM.grey200; e.currentTarget.style.color = DM.nearBlack; }}
+                                    onMouseLeave={e => { e.currentTarget.style.background = DM.grey100; e.currentTarget.style.color = DM.grey400; }}
+                                  >Visit ↗</a>
+                                )}
                                 {s.passage ? (
                                   <button
                                     onClick={() => setExpandedPassageId(isOpen ? null : `src-${s.id}`)}
