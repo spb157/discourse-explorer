@@ -629,7 +629,7 @@ function _sld(bg, shapes, imgRels = []) {
   };
 }
 
-const _CT = (n) => `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Default Extension="png" ContentType="image/png"/><Override PartName="/ppt/presentation.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.presentation.main+xml"/><Override PartName="/ppt/presProps.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.presProps+xml"/><Override PartName="/ppt/viewProps.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.viewProps+xml"/><Override PartName="/ppt/tableStyles.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.tableStyles+xml"/><Override PartName="/ppt/slideMasters/slideMaster1.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.slideMaster+xml"/><Override PartName="/ppt/slideLayouts/slideLayout1.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.slideLayout+xml"/><Override PartName="/ppt/theme/theme1.xml" ContentType="application/vnd.openxmlformats-officedocument.theme+xml"/>${Array.from({length:n},(_,i)=>`<Override PartName="/ppt/slides/slide${i+1}.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.slide+xml"/>`).join("")}</Types>`;
+const _CT = (n) => `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Default Extension="png" ContentType="image/png"/><Override PartName="/ppt/presentation.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.presentation.main+xml"/><Override PartName="/ppt/presProps.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.presProps+xml"/><Override PartName="/ppt/viewProps.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.viewProps+xml"/><Override PartName="/ppt/tableStyles.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.tableStyles+xml"/><Override PartName="/ppt/theme/theme1.xml" ContentType="application/vnd.openxmlformats-officedocument.theme+xml"/><Override PartName="/ppt/slideMasters/slideMaster1.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.slideMaster+xml"/><Override PartName="/ppt/slideLayouts/slideLayout1.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.slideLayout+xml"/><Override PartName="/ppt/theme/theme1.xml" ContentType="application/vnd.openxmlformats-officedocument.theme+xml"/>${Array.from({length:n},(_,i)=>`<Override PartName="/ppt/slides/slide${i+1}.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.slide+xml"/>`).join("")}</Types>`;
 const _RELS = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="ppt/presentation.xml"/></Relationships>`;
 const _PRES = (n) => `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><p:presentation xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><p:sldMasterIdLst><p:sldMasterId id="2147483648" r:id="rId1"/></p:sldMasterIdLst><p:sldIdLst>${Array.from({length:n},(_,i)=>`<p:sldId id="${256+i}" r:id="rId${i+2}"/>`).join("")}</p:sldIdLst><p:sldSz cx="12192000" cy="6858000" type="screen16x9"/><p:notesSz cx="6858000" cy="9144000"/></p:presentation>`;
 const _PRESRELS = (n) => `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/slideMaster" Target="slideMasters/slideMaster1.xml"/><Relationship Id="rId200" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/presProps" Target="presProps.xml"/><Relationship Id="rId201" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/viewProps" Target="viewProps.xml"/><Relationship Id="rId202" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/tableStyles" Target="tableStyles.xml"/>${Array.from({length:n},(_,i)=>`<Relationship Id="rId${i+2}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/slide" Target="slides/slide${i+1}.xml"/>`).join("")}</Relationships>`;
@@ -923,6 +923,15 @@ function DiscourseExplorer() {
     return canvas.toDataURL("image/png", 0.95);
   }, [narratives, currentAxis, getQ]);
 
+  // Resolve a source ID to a display string (title + author)
+  const resolveSource = useCallback((id) => {
+    if (id === null || id === undefined || id === "") return "";
+    const s = (allSources || []).find(s => String(s.id) === String(id));
+    if (!s) return String(id);
+    if (s.title && s.author) return s.title + " \u2014 " + s.author;
+    return s.title || s.author || String(id);
+  }, [allSources]);
+
   // PPT generation
   const generatePPT = useCallback(async () => {
     if (exporting) return;
@@ -933,15 +942,15 @@ function DiscourseExplorer() {
       const slides = [];
       const mediaFiles = [];
       const territory = (meta && meta.territory) || "Discourse Analysis";
-      const ft = () => _txt(0.3, H - 0.22, W - 0.6, 0.18, [{ t: "d+m \u00B7 Cultural Discourse Analysis \u00B7 Confidential", color: "AAAAAA", sz: 8, font: "Arial" }]);
+      const ft = () => _txt(0.3, H - 0.22, W - 0.6, 0.18, [{ t: "d+m \u00B7 Cultural Discourse Analysis \u00B7 Confidential", color: "AAAAAA", sz: 8, font: "Poppins" }]);
 
       // ── Cover
       slides.push(_sld("#111111", [
         _box(0, H - 0.6, W, 0.6, "#FFD900"),
-        _txt(0.4, H - 0.58, 2, 0.5, [{ t: "d+m", color: "111111", sz: 18, bold: true, font: "Arial Black" }], { valign: "c" }),
-        _txt(0.4, 0.5, 10, 0.35, [{ t: "Cultural Discourse Analysis", color: "FFD900", sz: 11, font: "Arial" }]),
-        _txt(0.4, 1.0, 11, 3.2, [{ t: territory, color: "FFFFFF", sz: 40, bold: true, font: "Arial Black" }]),
-        meta && meta.client ? _txt(0.4, 4.4, 7, 0.45, [{ t: meta.client, color: "999999", sz: 16, font: "Arial" }]) : "",
+        _txt(0.4, H - 0.58, 2, 0.5, [{ t: "d+m", color: "111111", sz: 18, bold: true, font: "Anton" }], { valign: "c" }),
+        _txt(0.4, 0.5, 10, 0.35, [{ t: "Cultural Discourse Analysis", color: "FFD900", sz: 11, font: "Poppins" }]),
+        _txt(0.4, 1.0, 11, 3.2, [{ t: territory, color: "FFFFFF", sz: 40, bold: true, font: "Anton" }]),
+        meta && meta.client ? _txt(0.4, 4.4, 7, 0.45, [{ t: meta.client, color: "999999", sz: 16, font: "Poppins" }]) : "",
         meta && meta.timeScope ? _txt(0.4, 4.9, 7, 0.35, [{ t: meta.timeScope, color: "555555", sz: 12, font: "Courier New" }]) : "",
       ]));
 
@@ -960,14 +969,14 @@ function DiscourseExplorer() {
         return [
           _box(bx, by, 3.05, 1.75, "#" + quadLight[qk], "#" + hx),
           _box(bx, by, 0.07, 1.75, "#" + hx),
-          _txt(bx+0.15, by+0.12, 2.8, 0.36, [{ t: qm.label||"", color: hx, sz: 10, bold: true, font: "Arial Black" }]),
-          _txt(bx+0.15, by+0.5, 2.8, 0.98, [{ t: qm.tagline||"", color: "555555", sz: 9, font: "Arial" }]),
+          _txt(bx+0.15, by+0.12, 2.8, 0.36, [{ t: qm.label||"", color: hx, sz: 10, bold: true, font: "Anton" }]),
+          _txt(bx+0.15, by+0.5, 2.8, 0.98, [{ t: qm.tagline||"", color: "555555", sz: 9, font: "Poppins" }]),
         ];
       });
       slides.push(_sld("#FFFFFF", [
         _box(0, 0, W, 0.5, "#111111"),
-        _txt(0.3, 0, 8, 0.5, [{ t: territory, color: "FFFFFF", sz: 13, bold: true, font: "Arial Black" }], { valign: "c" }),
-        _txt(8, 0, 5, 0.5, [{ t: "Discourse Landscape Map", color: "FFD900", sz: 10, font: "Arial" }], { align: "right", valign: "c" }),
+        _txt(0.3, 0, 8, 0.5, [{ t: territory, color: "FFFFFF", sz: 13, bold: true, font: "Anton" }], { valign: "c" }),
+        _txt(8, 0, 5, 0.5, [{ t: "Discourse Landscape Map", color: "FFD900", sz: 10, font: "Poppins" }], { align: "right", valign: "c" }),
         mapDataUrl ? _pic(0.25, 0.6, 6.4, 6.4, "rId1") : "",
         ...quadShapes, ft(),
       ], mapDataUrl ? ["../media/image1.png"] : []));
@@ -978,25 +987,25 @@ function DiscourseExplorer() {
         const shapes = [
           _box(0, 0, W, 0.5, "#111111"),
           _txt(0.3, 0, 3, 0.5, [{ t: "Tension " + String(t.rank).padStart(2,"0"), color: "DB2B39", sz: 12, font: "Courier New" }], { valign: "c" }),
-          _txt(3, 0, 10, 0.5, [{ t: territory, color: "666666", sz: 9, font: "Arial" }], { align: "right", valign: "c" }),
-          _txt(0.35, 0.65, 4.8, 0.9, [{ t: t.forceA||"", color: "111111", sz: 21, bold: true, font: "Arial Black" }]),
-          _txt(5.25, 0.65, 0.85, 0.9, [{ t: "\u2194", color: "DB2B39", sz: 32, bold: true, font: "Arial Black" }], { align: "center", valign: "c" }),
-          _txt(6.2, 0.65, 4.8, 0.9, [{ t: t.forceB||"", color: "111111", sz: 21, bold: true, font: "Arial Black" }]),
-          _txt(0.35, 1.7, 12.6, 0.6, [{ t: t.summary||"", color: "555555", sz: 12, font: "Arial" }]),
+          _txt(3, 0, 10, 0.5, [{ t: territory, color: "666666", sz: 9, font: "Poppins" }], { align: "right", valign: "c" }),
+          _txt(0.35, 0.65, 4.8, 0.9, [{ t: t.forceA||"", color: "111111", sz: 21, bold: true, font: "Anton" }]),
+          _txt(5.25, 0.65, 0.85, 0.9, [{ t: "\u2194", color: "DB2B39", sz: 32, bold: true, font: "Anton" }], { align: "center", valign: "c" }),
+          _txt(6.2, 0.65, 4.8, 0.9, [{ t: t.forceB||"", color: "111111", sz: 21, bold: true, font: "Anton" }]),
+          _txt(0.35, 1.7, 12.6, 0.6, [{ t: t.summary||"", color: "555555", sz: 12, font: "Poppins" }]),
         ];
         if (t.significance) {
-          shapes.push(_txt(0.35, 2.48, 5.8, 0.22, [{ t: "SIGNIFICANCE", color: "999999", sz: 8, bold: true, font: "Arial" }]));
-          shapes.push(_txt(0.35, 2.72, 5.8, 1.52, [{ t: t.significance, color: "555555", sz: 11, font: "Arial" }]));
+          shapes.push(_txt(0.35, 2.48, 5.8, 0.22, [{ t: "SIGNIFICANCE", color: "999999", sz: 8, bold: true, font: "Poppins" }]));
+          shapes.push(_txt(0.35, 2.72, 5.8, 1.52, [{ t: t.significance, color: "555555", sz: 11, font: "Poppins" }]));
         }
         if (t.strategicQuestion) {
           shapes.push(_box(7.0, 2.44, 5.95, 1.98, "#FFF9DB", "#DB2B39"));
-          shapes.push(_txt(7.2, 2.55, 5.5, 0.26, [{ t: "STRATEGIC QUESTION", color: "DB2B39", sz: 9, bold: true, font: "Arial" }]));
-          shapes.push(_txt(7.2, 2.84, 5.5, 1.4, [{ t: t.strategicQuestion, color: "333333", sz: 11, italic: true, font: "Arial" }]));
+          shapes.push(_txt(7.2, 2.55, 5.5, 0.26, [{ t: "STRATEGIC QUESTION", color: "DB2B39", sz: 9, bold: true, font: "Poppins" }]));
+          shapes.push(_txt(7.2, 2.84, 5.5, 1.4, [{ t: t.strategicQuestion, color: "333333", sz: 11, italic: true, font: "Poppins" }]));
         }
         if (t.evidence && t.evidence.length > 0) {
           const ev = t.evidence[0];
-          shapes.push(_txt(0.35, 4.6, 12.6, 0.78, [{ t: "\u201C"+(ev.text||"")+"\u201D", color: "333333", sz: 11, italic: true, font: "Arial" }], { bg: "#F7F7F7", bClr: "#DDDDDD" }));
-          if (ev.source) shapes.push(_txt(0.55, 5.2, 8, 0.18, [{ t: ev.source, color: "999999", sz: 9, font: "Arial" }]));
+          shapes.push(_txt(0.35, 4.6, 12.6, 0.78, [{ t: "\u201C"+(ev.text||"")+"\u201D", color: "333333", sz: 11, italic: true, font: "Poppins" }], { bg: "#F7F7F7", bClr: "#DDDDDD" }));
+          if (ev.source) shapes.push(_txt(0.55, 5.2, 8, 0.18, [{ t: resolveSource(ev.source), color: "999999", sz: 9, font: "Poppins" }]));
         }
         shapes.push(ft()); slides.push(_sld("#FFFFFF", shapes));
       }
@@ -1005,17 +1014,17 @@ function DiscourseExplorer() {
       const selectedProvs = allProvocations.filter(p => exportProvocations.has(p.id));
       if (selectedProvs.length > 0) {
         slides.push(_sld("#0A3A75", [
-          _txt(0.5, 2.5, W-1, 1.1, [{ t: "Provocations for Fieldwork", color: "FFFFFF", sz: 36, bold: true, font: "Arial Black" }], { align: "center", valign: "c" }),
-          _txt(0.5, 3.7, W-1, 0.45, [{ t: selectedProvs.length + " selected for primary research", color: "FFD900", sz: 14, font: "Arial" }], { align: "center" }),
+          _txt(0.5, 2.5, W-1, 1.1, [{ t: "Provocations for Fieldwork", color: "FFFFFF", sz: 36, bold: true, font: "Anton" }], { align: "center", valign: "c" }),
+          _txt(0.5, 3.7, W-1, 0.45, [{ t: selectedProvs.length + " selected for primary research", color: "FFD900", sz: 14, font: "Poppins" }], { align: "center" }),
         ]));
         for (const p of selectedProvs) {
           const tension = allTensions.find(t => t.id === p.tensionId);
           slides.push(_sld("#FFFFFF", [
             _box(0, 0, W, 0.08, "#FFD900"),
             tension ? _txt(0.35, 0.18, 12.6, 0.3, [{ t: "T"+tension.rank+" \u00B7 "+tension.forceA+" \u2194 "+tension.forceB, color: "999999", sz: 9, font: "Courier New" }]) : "",
-            _txt(0.35, 0.6, 12.6, 3.2, [{ t: p.title||"", color: "111111", sz: 28, bold: true, font: "Arial Black" }], { valign: "c" }),
-            p.text ? _txt(0.35, 3.9, 12.6, 1.2, [{ t: p.text, color: "555555", sz: 12, font: "Arial" }]) : "",
-            p.evidence ? _txt(0.35, 5.2, 12.6, 0.55, [{ t: "Evidence: "+p.evidence, color: "777777", sz: 10, italic: true, font: "Arial" }], { bg: "#F7F7F7", bClr: "#DDDDDD" }) : "",
+            _txt(0.35, 0.6, 12.6, 3.2, [{ t: p.title||"", color: "111111", sz: 28, bold: true, font: "Anton" }], { valign: "c" }),
+            p.text ? _txt(0.35, 3.9, 12.6, 1.2, [{ t: p.text, color: "555555", sz: 12, font: "Poppins" }]) : "",
+            p.evidence ? _txt(0.35, 5.2, 12.6, 0.55, [{ t: "Evidence: "+p.evidence, color: "777777", sz: 10, italic: true, font: "Poppins" }], { bg: "#F7F7F7", bClr: "#DDDDDD" }) : "",
             ft(),
           ]));
         }
@@ -1027,15 +1036,15 @@ function DiscourseExplorer() {
         const paras = (narr.summary||"").split("\n\n").slice(0,3);
         const shapes = [
           _box(0, 0, W, 0.5, "#111111"),
-          _txt(0.3, 0, 6, 0.5, [{ t: "Strategic Narrative", color: "FFD900", sz: 13, bold: true, font: "Arial Black" }], { valign: "c" }),
+          _txt(0.3, 0, 6, 0.5, [{ t: "Strategic Narrative", color: "FFD900", sz: 13, bold: true, font: "Anton" }], { valign: "c" }),
           _txt(6.5, 0, 6.5, 0.5, [{ t: "Lens: "+(currentAxis.name||""), color: "666666", sz: 9, font: "Courier New" }], { align: "right", valign: "c" }),
-          _txt(0.35, 0.65, 12.6, 1.6, [{ t: narr.headline||"", color: "111111", sz: 26, bold: true, font: "Arial Black" }]),
-          ...paras.map((para, i) => _txt(0.35, 2.45+i*1.2, 8.2, 1.1, [{ t: para, color: "444444", sz: 11, font: "Arial" }])),
+          _txt(0.35, 0.65, 12.6, 1.6, [{ t: narr.headline||"", color: "111111", sz: 26, bold: true, font: "Anton" }]),
+          ...paras.map((para, i) => _txt(0.35, 2.45+i*1.2, 8.2, 1.1, [{ t: para, color: "444444", sz: 11, font: "Poppins" }])),
         ];
         if (narr.keyTension) {
           shapes.push(_box(8.75, 0.65, 4.25, 3.9, "#FFF9DB", "#FFD900"));
-          shapes.push(_txt(8.95, 0.78, 3.85, 0.26, [{ t: "KEY TENSION", color: "999999", sz: 8, bold: true, font: "Arial" }]));
-          shapes.push(_txt(8.95, 1.1, 3.85, 3.3, [{ t: narr.keyTension, color: "333333", sz: 11, italic: true, font: "Arial" }]));
+          shapes.push(_txt(8.95, 0.78, 3.85, 0.26, [{ t: "KEY TENSION", color: "999999", sz: 8, bold: true, font: "Poppins" }]));
+          shapes.push(_txt(8.95, 1.1, 3.85, 3.3, [{ t: narr.keyTension, color: "333333", sz: 11, italic: true, font: "Poppins" }]));
         }
         shapes.push(ft()); slides.push(_sld("#FFFFFF", shapes));
       }
@@ -1047,7 +1056,7 @@ function DiscourseExplorer() {
         allSources.forEach(s => { if (!grouped[s.type]) grouped[s.type] = []; grouped[s.type].push(s); });
         const shapes = [
           _box(0, 0, W, 0.5, "#111111"),
-          _txt(0.3, 0, 6, 0.5, [{ t: "Corpus Registry", color: "FFFFFF", sz: 13, bold: true, font: "Arial Black" }], { valign: "c" }),
+          _txt(0.3, 0, 6, 0.5, [{ t: "Corpus Registry", color: "FFFFFF", sz: 13, bold: true, font: "Anton" }], { valign: "c" }),
           _txt(6.5, 0, 6.5, 0.5, [{ t: allSources.length+" sources", color: "FFD900", sz: 10, font: "Courier New" }], { align: "right", valign: "c" }),
         ];
         let col = 0, row = 0; const colW = 6.0, startY = 0.65, rowH = 0.27;
@@ -1055,11 +1064,11 @@ function DiscourseExplorer() {
           const x = 0.35 + col*(colW+0.7), y = startY + row*rowH;
           if (y > 6.8) break;
           const hx = typeColors[type]||"555555";
-          shapes.push(_txt(x, y, 1.1, 0.24, [{ t: type.toUpperCase(), color: hx, sz: 8, bold: true, font: "Arial" }]));
+          shapes.push(_txt(x, y, 1.1, 0.24, [{ t: type.toUpperCase(), color: hx, sz: 8, bold: true, font: "Poppins" }]));
           srcs.forEach((s, si) => {
             const sy = y + (si+0.8)*rowH; if (sy > 6.8) return;
             const label = (s.title||"").slice(0,52)+((s.title||"").length>52?"\u2026":"")+(s.author?" \u2014 "+s.author:"");
-            shapes.push(_txt(x+0.05, sy, colW-0.1, rowH-0.02, [{ t: label, color: "444444", sz: 8, font: "Arial" }]));
+            shapes.push(_txt(x+0.05, sy, colW-0.1, rowH-0.02, [{ t: label, color: "444444", sz: 8, font: "Poppins" }]));
           });
           row += srcs.length+1.2; if (startY+row*rowH > 6.3) { row = 0; col++; }
         }
@@ -1085,7 +1094,7 @@ function DiscourseExplorer() {
       document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
     } catch (err) { console.error("PPT export error:", err); alert("Export failed: " + err.message); }
     setExporting(false); setShowExport(false);
-  }, [exporting, meta, allTensions, allProvocations, exportTensions, exportProvocations, exportNarrative, exportSources, allSources, narratives, currentAxis, qMeta, renderMapToCanvas]);
+  }, [exporting, meta, allTensions, allProvocations, exportTensions, exportProvocations, exportNarrative, exportSources, allSources, narratives, currentAxis, qMeta, renderMapToCanvas, resolveSource]);
 
   const generateHTML = useCallback(() => {
     if (!meta) return;
@@ -1100,7 +1109,7 @@ function DiscourseExplorer() {
     const label = (t,c="999") => `<p style="font-family:monospace;font-size:11px;color:#${c};letter-spacing:.08em;margin:0 0 6px;">${esc(t)}</p>`;
     const foot = `<p style="font-family:monospace;font-size:10px;color:#aaa;margin-top:auto;padding-top:24px;">d+m · Cultural Discourse Analysis · Confidential</p>`;
 
-    let html = `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><title>${esc(territory)}</title><style>*{box-sizing:border-box;margin:0;padding:0;}body{font-family:Arial,sans-serif;background:#e8e8e8;padding:32px;}h1,h2,h3{font-family:'Arial Black',Arial,sans-serif;}@media print{body{background:#fff;padding:0;}section{box-shadow:none!important;border-radius:0!important;margin-bottom:0!important;}}</style></head><body>`;
+    let html = `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><title>${esc(territory)}</title><link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Anton&family=Poppins:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet"><style>*{box-sizing:border-box;margin:0;padding:0;}body{font-family:'Poppins',Arial,sans-serif;background:#e8e8e8;padding:32px;}h1,h2,h3{font-family:'Anton','Arial Black',Arial,sans-serif;font-weight:400;}@media print{body{background:#fff;padding:0;}section{box-shadow:none!important;border-radius:0!important;margin-bottom:0!important;}}</style></head><body>`;
 
     // Cover
     html += slide("#111", `
@@ -1141,7 +1150,7 @@ function DiscourseExplorer() {
         <p style="font-size:13px;color:#555;margin-bottom:20px;">${esc(t.summary||"")}</p>
         ${t.significance ? `<div style="margin-bottom:16px;">${label("SIGNIFICANCE")}<p style="font-size:12px;color:#555;">${esc(t.significance)}</p></div>` : ""}
         ${t.strategicQuestion ? `<div style="background:#FFF9DB;border-left:3px solid #DB2B39;padding:14px 16px;margin-bottom:16px;">${label("STRATEGIC QUESTION","DB2B39")}<p style="font-size:12px;color:#333;font-style:italic;">${esc(t.strategicQuestion)}</p></div>` : ""}
-        ${ev ? `<div style="background:#f7f7f7;padding:12px 16px;border-left:3px solid #ddd;"><p style="font-size:12px;color:#333;font-style:italic;">"${esc(ev.text||"")}"</p>${ev.source ? `<p style="font-size:10px;color:#999;margin-top:6px;">${esc(ev.source)}</p>` : ""}</div>` : ""}
+        ${ev ? `<div style="background:#f7f7f7;padding:12px 16px;border-left:3px solid #ddd;"><p style="font-size:12px;color:#333;font-style:italic;">"${esc(ev.text||"")}"</p>${ev.source ? `<p style="font-size:10px;color:#999;margin-top:6px;">${esc(resolveSource(ev.source))}</p>` : ""}</div>` : ""}
         ${foot}
       `);
     }
@@ -1196,7 +1205,7 @@ function DiscourseExplorer() {
     const a = document.createElement("a");
     a.href = url; a.download = ((meta.client||"discourse").replace(/\s+/g,"_"))+"_landscape_export.html";
     document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
-  }, [meta, allTensions, allProvocations, allSources, exportTensions, exportProvocations, exportNarrative, exportSources, currentAxis]);
+  }, [meta, allTensions, allProvocations, allSources, exportTensions, exportProvocations, exportNarrative, exportSources, currentAxis, resolveSource]);
   const refineNarrative = useCallback(async () => {
     if (!refinePrompt.trim() || refining || !currentAxis) return;
     setRefining(true); setRefineError("");
