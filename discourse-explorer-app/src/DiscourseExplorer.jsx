@@ -953,7 +953,7 @@ function DiscourseExplorer() {
       {
         const slide = pres.addSlide();
         slide.background = { color: "111111" };
-        slide.addShape(pres.ShapeType.RECT, { x: 0, y: H - 0.6, w: W, h: 0.6, fill: { color: "FFD900" }, line: noLine });
+        slide.addShape("rect", { x: 0, y: H - 0.6, w: W, h: 0.6, fill: { color: "FFD900" }, line: noLine });
         slide.addText("d+m", { x: 0.4, y: H - 0.58, w: 2, h: 0.5, color: "111111", fontSize: 18, bold: true, fontFace: "Anton", valign: "middle" });
         slide.addText("Cultural Discourse Analysis", { x: 0.4, y: 0.5, w: 10, h: 0.35, color: "FFD900", fontSize: 11, fontFace: "Poppins" });
         slide.addText(territory, { x: 0.4, y: 1.0, w: 11, h: 3.2, color: "FFFFFF", fontSize: 40, bold: true, fontFace: "Anton", autoFit: true });
@@ -966,7 +966,7 @@ function DiscourseExplorer() {
       {
         const slide = pres.addSlide();
         slide.background = { color: "FFFFFF" };
-        slide.addShape(pres.ShapeType.RECT, { x: 0, y: 0, w: W, h: 0.5, fill: { color: "111111" }, line: noLine });
+        slide.addShape("rect", { x: 0, y: 0, w: W, h: 0.5, fill: { color: "111111" }, line: noLine });
         slide.addText(territory, { x: 0.3, y: 0, w: 8, h: 0.5, color: "FFFFFF", fontSize: 13, bold: true, fontFace: "Anton", valign: "middle" });
         slide.addText("Discourse Landscape Map", { x: 8, y: 0, w: 5, h: 0.5, color: "FFD900", fontSize: 10, fontFace: "Poppins", align: "right", valign: "middle" });
         if (mapDataUrl) slide.addImage({ data: mapDataUrl, x: 0.25, y: 0.6, w: 6.4, h: 6.4 });
@@ -974,8 +974,8 @@ function DiscourseExplorer() {
         const quadLight = { topLeft: "E8EEF7", topRight: "E8F4ED", bottomLeft: "F0F0F0", bottomRight: "FDF0EE" };
         [["topLeft",6.9,0.7],["topRight",10.05,0.7],["bottomLeft",6.9,2.7],["bottomRight",10.05,2.7]].forEach(([qk,bx,by]) => {
           const qm = qMeta(qk);
-          slide.addShape(pres.ShapeType.RECT, { x: bx, y: by, w: 3.05, h: 1.75, fill: { color: quadLight[qk] }, line: { color: quadHex[qk], width: 1 } });
-          slide.addShape(pres.ShapeType.RECT, { x: bx, y: by, w: 0.07, h: 1.75, fill: { color: quadHex[qk] }, line: noLine });
+          slide.addShape("rect", { x: bx, y: by, w: 3.05, h: 1.75, fill: { color: quadLight[qk] }, line: { color: quadHex[qk], width: 1 } });
+          slide.addShape("rect", { x: bx, y: by, w: 0.07, h: 1.75, fill: { color: quadHex[qk] }, line: noLine });
           if (qm.label) slide.addText(qm.label, { x: bx+0.15, y: by+0.12, w: 2.8, h: 0.36, color: quadHex[qk], fontSize: 10, bold: true, fontFace: "Anton" });
           if (qm.tagline) slide.addText(qm.tagline, { x: bx+0.15, y: by+0.5, w: 2.8, h: 0.98, color: "555555", fontSize: 9, fontFace: "Poppins", wrap: true });
         });
@@ -987,7 +987,7 @@ function DiscourseExplorer() {
         const t = allTensions.find(t2 => t2.id === tid); if (!t) continue;
         const slide = pres.addSlide();
         slide.background = { color: "FFFFFF" };
-        slide.addShape(pres.ShapeType.RECT, { x: 0, y: 0, w: W, h: 0.5, fill: { color: "111111" }, line: noLine });
+        slide.addShape("rect", { x: 0, y: 0, w: W, h: 0.5, fill: { color: "111111" }, line: noLine });
         slide.addText("Tension " + String(t.rank).padStart(2,"0"), { x: 0.3, y: 0, w: 3, h: 0.5, color: "DB2B39", fontSize: 12, fontFace: "Courier New", valign: "middle" });
         slide.addText(territory, { x: 3, y: 0, w: 10, h: 0.5, color: "666666", fontSize: 9, fontFace: "Poppins", align: "right", valign: "middle" });
         if (t.forceA) slide.addText(t.forceA, { x: 0.35, y: 0.65, w: 4.8, h: 0.9, color: "111111", fontSize: 21, bold: true, fontFace: "Anton", autoFit: true });
@@ -999,13 +999,13 @@ function DiscourseExplorer() {
           slide.addText(t.significance, { x: 0.35, y: 2.72, w: 5.8, h: 1.52, color: "555555", fontSize: 11, fontFace: "Poppins", wrap: true });
         }
         if (t.strategicQuestion) {
-          slide.addShape(pres.ShapeType.RECT, { x: 7.0, y: 2.44, w: 5.95, h: 1.98, fill: { color: "FFF9DB" }, line: { color: "DB2B39", width: 1 } });
+          slide.addShape("rect", { x: 7.0, y: 2.44, w: 5.95, h: 1.98, fill: { color: "FFF9DB" }, line: { color: "DB2B39", width: 1 } });
           slide.addText("STRATEGIC QUESTION", { x: 7.2, y: 2.55, w: 5.5, h: 0.26, color: "DB2B39", fontSize: 9, bold: true, fontFace: "Poppins" });
           slide.addText(t.strategicQuestion, { x: 7.2, y: 2.84, w: 5.5, h: 1.4, color: "333333", fontSize: 11, italic: true, fontFace: "Poppins", wrap: true });
         }
         if (t.evidence && t.evidence.length > 0) {
           const ev = t.evidence[0];
-          slide.addShape(pres.ShapeType.RECT, { x: 0.35, y: 4.6, w: 12.6, h: 0.78, fill: { color: "F7F7F7" }, line: { color: "DDDDDD", width: 1 } });
+          slide.addShape("rect", { x: 0.35, y: 4.6, w: 12.6, h: 0.78, fill: { color: "F7F7F7" }, line: { color: "DDDDDD", width: 1 } });
           slide.addText("“"+(ev.text||"")+"”", { x: 0.45, y: 4.63, w: 12.4, h: 0.65, color: "333333", fontSize: 11, italic: true, fontFace: "Poppins", wrap: true });
           if (ev.source) slide.addText(resolveSource(ev.source), { x: 0.55, y: 5.42, w: 8, h: 0.2, color: "999999", fontSize: 9, fontFace: "Poppins" });
         }
@@ -1025,12 +1025,12 @@ function DiscourseExplorer() {
           const tension = allTensions.find(t => t.id === p.tensionId);
           const slide = pres.addSlide();
           slide.background = { color: "FFFFFF" };
-          slide.addShape(pres.ShapeType.RECT, { x: 0, y: 0, w: W, h: 0.08, fill: { color: "FFD900" }, line: noLine });
+          slide.addShape("rect", { x: 0, y: 0, w: W, h: 0.08, fill: { color: "FFD900" }, line: noLine });
           if (tension) slide.addText("T"+tension.rank+" · "+tension.forceA+" ↔ "+tension.forceB, { x: 0.35, y: 0.18, w: 12.6, h: 0.3, color: "999999", fontSize: 9, fontFace: "Courier New" });
           if (p.title) slide.addText(p.title, { x: 0.35, y: 0.6, w: 12.6, h: 3.2, color: "111111", fontSize: 28, bold: true, fontFace: "Anton", valign: "middle", wrap: true, autoFit: true });
           if (p.text) slide.addText(p.text, { x: 0.35, y: 3.9, w: 12.6, h: 1.2, color: "555555", fontSize: 12, fontFace: "Poppins", wrap: true });
           if (p.evidence) {
-            slide.addShape(pres.ShapeType.RECT, { x: 0.35, y: 5.2, w: 12.6, h: 0.55, fill: { color: "F7F7F7" }, line: { color: "DDDDDD", width: 1 } });
+            slide.addShape("rect", { x: 0.35, y: 5.2, w: 12.6, h: 0.55, fill: { color: "F7F7F7" }, line: { color: "DDDDDD", width: 1 } });
             slide.addText("Evidence: "+p.evidence, { x: 0.45, y: 5.23, w: 12.4, h: 0.46, color: "777777", fontSize: 10, italic: true, fontFace: "Poppins", wrap: true });
           }
           ft(slide);
@@ -1043,7 +1043,7 @@ function DiscourseExplorer() {
         const paras = (narr.summary||"").split("\n\n").slice(0,3);
         const slide = pres.addSlide();
         slide.background = { color: "FFFFFF" };
-        slide.addShape(pres.ShapeType.RECT, { x: 0, y: 0, w: W, h: 0.5, fill: { color: "111111" }, line: noLine });
+        slide.addShape("rect", { x: 0, y: 0, w: W, h: 0.5, fill: { color: "111111" }, line: noLine });
         slide.addText("Strategic Narrative", { x: 0.3, y: 0, w: 6, h: 0.5, color: "FFD900", fontSize: 13, bold: true, fontFace: "Anton", valign: "middle" });
         slide.addText("Lens: "+(currentAxis.name||""), { x: 6.5, y: 0, w: 6.5, h: 0.5, color: "666666", fontSize: 9, fontFace: "Courier New", align: "right", valign: "middle" });
         if (narr.headline) slide.addText(narr.headline, { x: 0.35, y: 0.65, w: 12.6, h: 1.6, color: "111111", fontSize: 26, bold: true, fontFace: "Anton", wrap: true, autoFit: true });
@@ -1051,7 +1051,7 @@ function DiscourseExplorer() {
           if (para) slide.addText(para, { x: 0.35, y: 2.45+i*1.2, w: 8.2, h: 1.1, color: "444444", fontSize: 11, fontFace: "Poppins", wrap: true });
         });
         if (narr.keyTension) {
-          slide.addShape(pres.ShapeType.RECT, { x: 8.75, y: 0.65, w: 4.25, h: 3.9, fill: { color: "FFF9DB" }, line: { color: "FFD900", width: 2 } });
+          slide.addShape("rect", { x: 8.75, y: 0.65, w: 4.25, h: 3.9, fill: { color: "FFF9DB" }, line: { color: "FFD900", width: 2 } });
           slide.addText("KEY TENSION", { x: 8.95, y: 0.78, w: 3.85, h: 0.26, color: "999999", fontSize: 8, bold: true, fontFace: "Poppins" });
           slide.addText(narr.keyTension, { x: 8.95, y: 1.1, w: 3.85, h: 3.3, color: "333333", fontSize: 11, italic: true, fontFace: "Poppins", wrap: true });
         }
@@ -1065,7 +1065,7 @@ function DiscourseExplorer() {
         allSources.forEach(s => { if (!grouped[s.type]) grouped[s.type] = []; grouped[s.type].push(s); });
         const slide = pres.addSlide();
         slide.background = { color: "FFFFFF" };
-        slide.addShape(pres.ShapeType.RECT, { x: 0, y: 0, w: W, h: 0.5, fill: { color: "111111" }, line: noLine });
+        slide.addShape("rect", { x: 0, y: 0, w: W, h: 0.5, fill: { color: "111111" }, line: noLine });
         slide.addText("Corpus Registry", { x: 0.3, y: 0, w: 6, h: 0.5, color: "FFFFFF", fontSize: 13, bold: true, fontFace: "Anton", valign: "middle" });
         slide.addText(allSources.length+" sources", { x: 6.5, y: 0, w: 6.5, h: 0.5, color: "FFD900", fontSize: 10, fontFace: "Courier New", align: "right", valign: "middle" });
         let col = 0, row = 0; const colW = 6.0, startY = 0.65, rowH = 0.27;
