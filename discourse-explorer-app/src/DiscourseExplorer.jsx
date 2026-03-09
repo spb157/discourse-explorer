@@ -1616,7 +1616,7 @@ function DiscourseExplorer() {
                                 <div style={{ padding: "12px 14px" }}>
                                   <p style={{ fontSize: "12px", fontStyle: "italic", color: DM.nearBlack, lineHeight: 1.6 }}>{"\u201C"}{q.text}{"\u201D"}</p>
                                   <div style={{ display: "flex", alignItems: "center", gap: "6px", marginTop: "6px" }}>
-                                    <span style={{ fontSize: "10px", fontWeight: 500, color: DM.grey400 }}>{q.source}</span>
+                                    <span style={{ fontSize: "10px", fontWeight: 500, color: DM.grey400 }}>{matchedSource?.title || q.source}</span>
                                     <MarketPill market={q.market} />
                                     {hasPassage && (
                                       <button
@@ -1803,7 +1803,7 @@ function DiscourseExplorer() {
                               <div key={i} style={{ padding: "12px 14px", background: DM.white, borderRadius: "4px", borderLeft: `2px solid ${col}40` }}>
                                 <p style={{ fontSize: "11px", fontStyle: "italic", color: DM.nearBlack, lineHeight: 1.6 }}>{"\u201C"}{q.text}{"\u201D"}</p>
                                 <div style={{ display: "flex", alignItems: "center", gap: "6px", marginTop: "6px" }}>
-                                  <span style={{ fontSize: "9px", fontWeight: 500, color: DM.grey400 }}>{q.source}</span>
+                                  <span style={{ fontSize: "9px", fontWeight: 500, color: DM.grey400 }}>{allSources.find(s => s.id === q.source)?.title || q.source}</span>
                                   <MarketPill market={q.market} />
                                   <span style={{ fontSize: "8px", color: col, background: `${col}10`, padding: "1px 5px", borderRadius: "3px", marginLeft: "auto" }}>{q.narrativeName}</span>
                                 </div>
@@ -1918,7 +1918,7 @@ function DiscourseExplorer() {
                               {t.evidence.map((ev, i) => (
                                 <div key={i} style={{ padding: "8px 12px", background: DM.grey50, borderRadius: "4px", borderLeft: `2px solid ${DM.grey200}` }}>
                                   <p style={{ fontSize: "11px", fontStyle: "italic", color: DM.nearBlack, lineHeight: 1.5 }}>{"\u201C"}{ev.text}{"\u201D"}</p>
-                                  <span style={{ fontSize: "9px", color: DM.grey400 }}>{ev.source}</span>
+                                  <span style={{ fontSize: "9px", color: DM.grey400 }}>{allSources.find(s => s.id === ev.source)?.title || ev.source}</span>
                                 </div>
                               ))}
                             </div>
@@ -2187,12 +2187,6 @@ function DiscourseExplorer() {
                                   <div style={{ fontSize: "9px", color: DM.grey400, marginTop: "2px" }}>{s.author} · {s.date}</div>
                                 </div>
                                 <MarketPill market={s.market} />
-                                {s.url && (
-                                  <a href={s.url} target="_blank" rel="noopener noreferrer" style={{ fontSize: "9px", fontWeight: 600, color: DM.grey400, background: DM.grey100, borderRadius: "3px", padding: "4px 10px", textDecoration: "none", whiteSpace: "nowrap", flexShrink: 0, transition: "all 0.15s" }}
-                                    onMouseEnter={e => { e.currentTarget.style.background = DM.grey200; e.currentTarget.style.color = DM.nearBlack; }}
-                                    onMouseLeave={e => { e.currentTarget.style.background = DM.grey100; e.currentTarget.style.color = DM.grey400; }}
-                                  >Visit ↗</a>
-                                )}
                                 {s.passage ? (
                                   <button
                                     onClick={() => setExpandedPassageId(isOpen ? null : `src-${s.id}`)}
